@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'notifikasi_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -13,9 +14,6 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // =========================
-              // HEADER
-              // =========================
               Row(
                 children: [
                   Container(
@@ -69,7 +67,14 @@ class DashboardScreen extends StatelessWidget {
                   ),
 
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationScreen(),
+                        ),
+                      );
+                    },
                     icon: const Icon(
                       Icons.notifications_none_rounded,
                       size: 25,
@@ -81,9 +86,6 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // =========================
-              // AI INSIGHT
-              // =========================
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -133,9 +135,6 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // =========================
-              // RINGKASAN NILAI
-              // =========================
               _SectionHeader(
                 title: 'Ringkasan nilai',
                 action: 'Lihat semua',
@@ -166,9 +165,6 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // =========================
-              // STATUS TUGAS
-              // =========================
               const Text(
                 'Status tugas',
                 style: TextStyle(
@@ -215,9 +211,6 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // =========================
-              // TUGAS DAN TENGGAT
-              // =========================
               _SectionHeader(
                 title: 'Tugas dan tenggat',
                 action: 'Lihat semua',
@@ -267,9 +260,6 @@ class DashboardScreen extends StatelessWidget {
         ),
       ),
 
-      // =========================
-      // BOTTOM NAVIGATION
-      // =========================
       bottomNavigationBar: Container(
         height: 71,
         decoration: const BoxDecoration(
@@ -307,10 +297,6 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
-// =====================================================
-// SECTION HEADER
-// =====================================================
-
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String action;
@@ -346,10 +332,6 @@ class _SectionHeader extends StatelessWidget {
     );
   }
 }
-
-// =====================================================
-// STAT CARD
-// =====================================================
 
 class _StatCard extends StatelessWidget {
   final String label;
@@ -397,10 +379,6 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-
-// =====================================================
-// TASK STATUS CARD
-// =====================================================
 
 class _TaskStatusCard extends StatelessWidget {
   final String label;
@@ -450,10 +428,6 @@ class _TaskStatusCard extends StatelessWidget {
     );
   }
 }
-
-// =====================================================
-// ASSIGNMENT ITEM
-// =====================================================
 
 class _AssignmentItem extends StatelessWidget {
   final String title;
@@ -540,10 +514,6 @@ class _AssignmentItem extends StatelessWidget {
     );
   }
 }
-
-// =====================================================
-// BOTTOM NAVIGATION ITEM
-// =====================================================
 
 class _BottomNavItem extends StatelessWidget {
   final IconData icon;
