@@ -452,10 +452,7 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: 10),
 
           const Text(
-            'sistem yang dirancang untuk mengelola berbagai '
-            'aktivitas akademik, seperti data mahasiswa, kelas, nilai, '
-            'dan laporan pembelajaran dalam satu platform yang '
-            'terhubung.',
+            '     sistem yang dirancang untuk mengelola berbagai aktivitas akademik, seperti data mahasiswa, kelas, nilai, dan laporan pembelajaran dalam satu platform yang terhubung. Sistem ini dilengkapi dengan teknologi kecerdasan buatan (AI) yang mampu memberikan umpan balik, analisis, dan rekomendasi secara otomatis berdasarkan data akademik, sehingga dapat membantu dosen dan mahasiswa meningkatkan efektivitas proses belajar mengajar.',
             style: TextStyle(
               fontSize: 9,
               height: 1.5,

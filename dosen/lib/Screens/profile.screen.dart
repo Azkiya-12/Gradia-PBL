@@ -9,99 +9,104 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF7F8FC),
       body: Row(
         children: [
-          // ================= SIDEBAR =================
-          Container(
-            width: 220,
-            color: Colors.white,
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
+          
+// ================= SIDEBAR =================
+Container(
+  width: 220,
+  color: Colors.white,
+  child: SingleChildScrollView(
+    child: Column(
+      children: [
+        const SizedBox(height: 20),
 
-                // Logo
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.school,
-                      color: Colors.deepPurple,
-                      size: 30,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "Gradia\nPortal Dosen",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 25),
-
-                _sidebarTitle("UTAMA"),
-
-                _menuItem(
-                  icon: Icons.dashboard_outlined,
-                  title: "Dashboard",
-                ),
-
-                _sidebarTitle("PERKULIAHAN & MAHASISWA"),
-
-                _menuItem(
-                  icon: Icons.people_outline,
-                  title: "Manajemen Data Kelas",
-                ),
-
-                _menuItem(
-                  icon: Icons.menu_book_outlined,
-                  title: "Tambah Kelas & Mata Kuliah",
-                ),
-
-                _sidebarTitle("PENILAIAN & REKAPITULASI"),
-
-                _menuItem(
-                  icon: Icons.edit_note,
-                  title: "Input Rekap Nilai",
-                ),
-
-                _menuItem(
-                  icon: Icons.analytics_outlined,
-                  title: "Analitik Nilai",
-                ),
-
-                _sidebarTitle("KECERDASAN BUATAN & LAPORAN"),
-
-                _menuItem(
-                  icon: Icons.auto_awesome,
-                  title: "Analitik & Feedback",
-                ),
-
-                _menuItem(
-                  icon: Icons.picture_as_pdf_outlined,
-                  title: "Cetak PDF Laporan",
-                ),
-
-                _sidebarTitle("PENGATURAN AKUN"),
-
-                _menuItem(
-                  icon: Icons.person_outline,
-                  title: "Kelola Profil",
-                  active: true,
-                ),
-
-                _menuItem(
-                  icon: Icons.lock_outline,
-                  title: "Keamanan & Akun",
-                ),
-
-                _menuItem(
-                  icon: Icons.notifications_none,
-                  title: "Panduan Dosen",
-                ),
-              ],
+        // Logo
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.school,
+              color: Colors.deepPurple,
+              size: 30,
             ),
-          ),
+            const SizedBox(width: 8),
+            const Text(
+              "Gradia\nPortal Dosen",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 25),
+
+        _sidebarTitle("UTAMA"),
+
+        _menuItem(
+          icon: Icons.dashboard_outlined,
+          title: "Dashboard",
+        ),
+
+        _sidebarTitle("PERKULIAHAN & MAHASISWA"),
+
+        _menuItem(
+          icon: Icons.people_outline,
+          title: "Manajemen Data Kelas",
+        ),
+
+        _menuItem(
+          icon: Icons.menu_book_outlined,
+          title: "Tambah Kelas & Mata Kuliah",
+        ),
+
+        _sidebarTitle("PENILAIAN & REKAPITULASI"),
+
+        _menuItem(
+          icon: Icons.edit_note,
+          title: "Input Rekap Nilai",
+        ),
+
+        _menuItem(
+          icon: Icons.analytics_outlined,
+          title: "Analitik Nilai",
+        ),
+
+        _sidebarTitle("KECERDASAN BUATAN & LAPORAN"),
+
+        _menuItem(
+          icon: Icons.auto_awesome,
+          title: "Analitik & Feedback",
+        ),
+
+        _menuItem(
+          icon: Icons.picture_as_pdf_outlined,
+          title: "Cetak PDF Laporan",
+        ),
+
+        _sidebarTitle("PENGATURAN AKUN"),
+
+        _menuItem(
+          icon: Icons.person_outline,
+          title: "Kelola Profil",
+          active: true,
+        ),
+
+        _menuItem(
+          icon: Icons.lock_outline,
+          title: "Keamanan & Akun",
+        ),
+
+        _menuItem(
+          icon: Icons.notifications_none,
+          title: "Panduan Dosen",
+        ),
+
+        const SizedBox(height: 20),
+      ],
+    ),
+  ),
+),
 
           // ================= MAIN CONTENT =================
           Expanded(
