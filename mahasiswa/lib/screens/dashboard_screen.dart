@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'notifikasi_screen.dart';
+import 'tugas_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+  final ValueChanged<int>? onTabChange;
+
+  const DashboardScreen({super.key, this.onTabChange});
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +25,7 @@ class DashboardScreen extends StatelessWidget {
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [
-                          Color(0xFF4F46E5),
-                          Color(0xFF7C3AED),
-                        ],
+                        colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
                       ),
                     ),
                     child: const Center(
@@ -92,10 +92,7 @@ class DashboardScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF4F46E5),
-                      Color(0xFF7C3AED),
-                    ],
+                    colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
@@ -135,10 +132,7 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              _SectionHeader(
-                title: 'Ringkasan nilai',
-                action: 'Lihat semua',
-              ),
+              _SectionHeader(title: 'Ringkasan nilai', action: 'Lihat semua'),
 
               const SizedBox(height: 12),
 
@@ -146,19 +140,13 @@ class DashboardScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: _StatCard(
-                      label: 'IPK semester',
-                      value: '3.7',
-                    ),
+                    child: _StatCard(label: 'IPK semester', value: '3.7'),
                   ),
 
                   const SizedBox(width: 12),
 
                   Expanded(
-                    child: _StatCard(
-                      label: 'Kehadiran',
-                      value: '92%',
-                    ),
+                    child: _StatCard(label: 'Kehadiran', value: '92%'),
                   ),
                 ],
               ),
@@ -214,6 +202,19 @@ class DashboardScreen extends StatelessWidget {
               _SectionHeader(
                 title: 'Tugas dan tenggat',
                 action: 'Lihat semua',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TugasScreen(
+                        onLihatEvaluasiAI: () {
+                          Navigator.pop(context);
+                          onTabChange?.call(2);
+                        },
+                      ),
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(height: 12),
@@ -223,26 +224,20 @@ class DashboardScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFFE2E8F0),
-                  ),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Column(
                   children: [
                     _AssignmentItem(
                       title: 'Usability Test Report',
-                      subtitle:
-                          'Desain User Interface dan User Experience',
+                      subtitle: 'Desain User Interface dan User Experience',
                       deadline: 'Terlambat 2 hari',
                       status: 'Terlewat',
                       statusColor: const Color(0xFFDC2626),
                       statusBackground: const Color(0xFFFEF2F2),
                     ),
 
-                    const Divider(
-                      height: 1,
-                      color: Color(0xFFE2E8F0),
-                    ),
+                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
 
                     _AssignmentItem(
                       title: 'Tugas Aplikasi Mobile',
@@ -264,11 +259,7 @@ class DashboardScreen extends StatelessWidget {
         height: 71,
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(
-            top: BorderSide(
-              color: Color(0xFFE2E8F0),
-            ),
-          ),
+          border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -278,18 +269,12 @@ class DashboardScreen extends StatelessWidget {
               label: 'Dashboard',
               active: true,
             ),
-            _BottomNavItem(
-              icon: Icons.description_outlined,
-              label: 'Nilai',
-            ),
+            _BottomNavItem(icon: Icons.description_outlined, label: 'Nilai'),
             _BottomNavItem(
               icon: Icons.auto_awesome_outlined,
               label: 'Evaluasi AI',
             ),
-            _BottomNavItem(
-              icon: Icons.person_outline,
-              label: 'Akun',
-            ),
+            _BottomNavItem(icon: Icons.person_outline, label: 'Akun'),
           ],
         ),
       ),
@@ -300,10 +285,12 @@ class DashboardScreen extends StatelessWidget {
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String action;
+  final VoidCallback? onTap;
 
   const _SectionHeader({
     required this.title,
     required this.action,
+    this.onTap,
   });
 
   @override
@@ -320,12 +307,15 @@ class _SectionHeader extends StatelessWidget {
             ),
           ),
         ),
-        Text(
-          action,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF4F46E5),
+        GestureDetector(
+          onTap: onTap,
+          child: Text(
+            action,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF4F46E5),
+            ),
           ),
         ),
       ],
@@ -337,10 +327,7 @@ class _StatCard extends StatelessWidget {
   final String label;
   final String value;
 
-  const _StatCard({
-    required this.label,
-    required this.value,
-  });
+  const _StatCard({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -349,19 +336,14 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-        ),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF64748B),
-            ),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
 
           const SizedBox(height: 8),
@@ -398,19 +380,14 @@ class _TaskStatusCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-        ),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF64748B),
-            ),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
 
           const SizedBox(height: 6),
@@ -492,10 +469,7 @@ class _AssignmentItem extends StatelessWidget {
           const SizedBox(width: 8),
 
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 5,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: statusBackground,
               borderRadius: BorderRadius.circular(999),
@@ -528,18 +502,12 @@ class _BottomNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active
-        ? const Color(0xFF4F46E5)
-        : const Color(0xFF64748B);
+    final color = active ? const Color(0xFF4F46E5) : const Color(0xFF64748B);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          icon,
-          size: 22,
-          color: color,
-        ),
+        Icon(icon, size: 22, color: color),
 
         const SizedBox(height: 3),
 

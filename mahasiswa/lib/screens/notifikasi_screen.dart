@@ -8,156 +8,261 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
+  static const bool _tampilkanKosong = true;
+  static const List<_NotificationData> _notifications = [];
+
   String _selectedFilter = 'Semua';
 
   static const List<String> _filters = ['Semua', 'Nilai', 'Pengumuman'];
 
-  static const List<_NotificationData> _notifications = [
-    _NotificationData(
-      category: 'Nilai',
-      icon: Icons.description_outlined,
-      title: 'Nilai mata kuliah',
-      message: 'Nilai Algoritma & Struktur Data telah diperbarui',
-      time: '10:24',
-    ),
-    _NotificationData(
-      category: 'Pengumuman',
-      icon: Icons.notifications_none_rounded,
-      title: 'Pengumuman kampus',
-      message: 'Jadwal Ujian Semester Ganjil telah diumumkan',
-      time: '09:00',
-    ),
-    _NotificationData(
-      category: 'Reminder',
-      icon: Icons.access_time,
-      title: 'Reminder tugas',
-      message: 'Tugas Pemrograman Mobile dikumpulkan besok',
-      time: '08:30',
-    ),
-    _NotificationData(
-      category: 'Sistem',
-      icon: Icons.info_outline,
-      title: 'Update sistem',
-      message: 'Aplikasi Gradia diperbarui ke versi terbaru',
-      time: 'Kemarin',
-    ),
-  ];
+  List<_NotificationData> get _allNotifications =>
+      _tampilkanKosong ? const [] : _notifications;
 
   List<_NotificationData> get _filteredNotifications {
-    if (_selectedFilter == 'Semua') return _notifications;
-    return _notifications
-        .where((item) => item.category == _selectedFilter)
-        .toList();
+    final all = _allNotifications;
+    if (_selectedFilter == 'Semua') return all;
+    return all.where((item) => item.category == _selectedFilter).toList();
+  }
+
+  Widget _header() {
+    return Row(
+      children: [
+        IconButton(
+          onPressed: () => Navigator.pop(context),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          icon: const Icon(
+            Icons.chevron_left,
+            size: 28,
+            color: Color(0xFF0F172A),
+          ),
+        ),
+        const SizedBox(width: 12),
+        const Text(
+          'Notifikasi',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0F172A),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool belumAdaNotifikasi = _allNotifications.isEmpty;
     final items = _filteredNotifications;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      // Latar putih saat kosong (sesuai desain), abu muda saat ada data
+      backgroundColor:
+          belumAdaNotifikasi ? Colors.white : const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(
-                      Icons.chevron_left,
-                      size: 28,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
+              _header(),
 
-                  const SizedBox(width: 12),
-
-                  const Text(
-                    'Notifikasi',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: const Color(0xFFE2E8F0),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    for (int i = 0; i < _filters.length; i++) ...[
-                      if (i != 0) const SizedBox(width: 6),
-                      Expanded(
-                        child: _FilterTab(
-                          label: _filters[i],
-                          active: _filters[i] == _selectedFilter,
-                          onTap: () {
-                            setState(() {
-                              _selectedFilter = _filters[i];
-                            });
-                          },
+              if (belumAdaNotifikasi)
+                // Tampilan kosong
+                Expanded(
+                  child: _EmptyNotification(
+                    onSettings: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Pengaturan notifikasi segera hadir'),
                         ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFFE2E8F0),
+                      );
+                    },
+                    onBack: () => Navigator.pop(context),
                   ),
-                ),
-                child: items.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Center(
-                          child: Text(
-                            'Belum ada notifikasi',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF64748B),
+                )
+              else
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(0xFFE2E8F0),
                             ),
                           ),
+                          child: Row(
+                            children: [
+                              for (int i = 0; i < _filters.length; i++) ...[
+                                if (i != 0) const SizedBox(width: 6),
+                                Expanded(
+                                  child: _FilterTab(
+                                    label: _filters[i],
+                                    active: _filters[i] == _selectedFilter,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedFilter = _filters[i];
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
-                      )
-                    : Column(
-                        children: [
-                          for (int i = 0; i < items.length; i++) ...[
-                            _NotificationTile(data: items[i]),
-                            if (i != items.length - 1)
-                              const Divider(
-                                height: 1,
-                                color: Color(0xFFE2E8F0),
-                              ),
-                          ],
-                        ],
-                      ),
-              ),
+
+                        const SizedBox(height: 24),
+
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: const Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          child: items.isEmpty
+                              ? const Padding(
+                                  padding: EdgeInsets.all(24),
+                                  child: Center(
+                                    child: Text(
+                                      'Belum ada notifikasi',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Column(
+                                  children: [
+                                    for (int i = 0; i < items.length; i++) ...[
+                                      _NotificationTile(data: items[i]),
+                                      if (i != items.length - 1)
+                                        const Divider(
+                                          height: 1,
+                                          color: Color(0xFFE2E8F0),
+                                        ),
+                                    ],
+                                  ],
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyNotification extends StatelessWidget {
+  final VoidCallback onSettings;
+  final VoidCallback onBack;
+
+  const _EmptyNotification({
+    required this.onSettings,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 112,
+              height: 112,
+              decoration: const BoxDecoration(
+                color: Color(0xFFEEF2FF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.notifications_none_rounded,
+                size: 48,
+                color: Color(0xFF4F46E5),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Belum ada notifikasi',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Kabar nilai, pengumuman kampus, dan pengingat tugas akan muncul di sini.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.45,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: onSettings,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4F46E5),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Atur notifikasi',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            TextButton(
+              onPressed: onBack,
+              child: const Text(
+                'Kembali ke dashboard',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -217,9 +322,8 @@ class _FilterTab extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: active
-                ? const Color(0xFF4F46E5)
-                : const Color(0xFF64748B),
+            color:
+                active ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
           ),
         ),
       ),
