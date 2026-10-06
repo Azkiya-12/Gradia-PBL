@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -9,11 +10,15 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  // Warna diambil dari desain Figma (halaman Design system)
   static const _primary = Color(0xFF4F46E5);
-  static const _link = Color(0xFF0066FF);
   static const _border = Color(0xFFE2E8F0);
   static const _dark = Color(0xFF0F172A);
   static const _grey = Color(0xFF64748B);
+  static const _hint = Color(0xFF94A3B8);
+  static const _surface = Color(0xFFF8FAFC);
+  static const _danger = Color(0xFFDC2626);
+  static const _dangerSoft = Color(0xFFFEF2F2);
 
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -21,13 +26,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
   final _confirmController = TextEditingController();
+  late final TapGestureRecognizer _loginTap;
   String? _selectedProdi;
-  bool _obscurePass = true;
-bool _obscureConfirm = true;
 
   final List<String> _prodiList = const [
     'Teknologi Informasi',
-    'teknologi Rekayasa Perangkat Lunak',
+    'Teknologi Rekayasa Perangkat Lunak',
     'Sistem Informasi',
     'Teknik Elektro',
     'Kearsipan',
@@ -37,12 +41,19 @@ bool _obscureConfirm = true;
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loginTap = TapGestureRecognizer()..onTap = () => Navigator.pop(context);
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _nimController.dispose();
     _emailController.dispose();
     _passController.dispose();
     _confirmController.dispose();
+    _loginTap.dispose();
     super.dispose();
   }
 
@@ -55,34 +66,42 @@ bool _obscureConfirm = true;
     Navigator.pop(context); // kembali ke halaman Login
   }
 
-  InputDecoration _decoration(String hint, {Widget? suffixIcon}) {
+  /// [helper] tampil di bawah input, otomatis diganti pesan error kalau ada error.
+  InputDecoration _decoration(String hint, {String? helper}) {
     OutlineInputBorder outline(Color color) => OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: color),
         );
 
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+      hintStyle: const TextStyle(color: _hint, fontSize: 14),
+      helperText: helper,
+      helperStyle: const TextStyle(fontSize: 12, color: _grey),
+      errorStyle: const TextStyle(fontSize: 12, height: 1.4, color: _danger),
+      errorMaxLines: 3,
       filled: true,
-      fillColor: const Color(0xFFF8FAFC),
-      suffixIcon: suffixIcon,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      // Latar jadi merah muda saat field error (sesuai desain)
+      fillColor: WidgetStateColor.resolveWith(
+        (states) =>
+            states.contains(WidgetState.error) ? _dangerSoft : _surface,
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
       border: outline(_border),
       enabledBorder: outline(_border),
       focusedBorder: outline(_primary),
-      errorBorder: outline(Colors.red),
-      focusedErrorBorder: outline(Colors.red),
+      errorBorder: outline(_danger),
+      focusedErrorBorder: outline(_danger),
     );
   }
 
   Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.only(bottom: 6),
         child: Text(
           text,
           style: const TextStyle(
             fontSize: 13,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             color: _dark,
           ),
         ),
@@ -116,14 +135,14 @@ bool _obscureConfirm = true;
                     const Text(
                       'Buat akun',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
                         color: _dark,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 const Text(
                   'Daftar sebagai mahasiswa',
                   style: TextStyle(fontSize: 12, color: _grey),
@@ -144,21 +163,28 @@ bool _obscureConfirm = true;
 
                 const SizedBox(height: 16),
 
-                // NIM
+                // NIM (harus 12 digit angka)
                 _label('NIM'),
                 TextFormField(
                   controller: _nimController,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(12),
+                  ],
                   decoration: _decoration('Masukkan NIM'),
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'NIM wajib diisi'
-                      : null,
+                  validator: (v) {
+                    if (v == null || !RegExp(r'^\d{12}$').hasMatch(v.trim())) {
+                      return 'NIM terdiri dari 12 digit angka. Contoh: 251234567899';
+                    }
+                    return null;
+                  },
                 ),
 
                 const SizedBox(height: 16),
 
-                // Email kampus
+                // Email kampus (harus @kampus.ac.id)
                 _label('Email kampus'),
                 TextFormField(
                   controller: _emailController,
@@ -166,11 +192,11 @@ bool _obscureConfirm = true;
                   textInputAction: TextInputAction.next,
                   decoration: _decoration('nama@kampus.ac.id'),
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Email kampus wajib diisi';
-                    }
-                    if (!v.contains('@') || !v.contains('.')) {
-                      return 'Format email tidak valid';
+                    final email = (v ?? '').trim().toLowerCase();
+                    if (email.isEmpty) return 'Email kampus wajib diisi';
+                    if (!email.endsWith('@kampus.ac.id') ||
+                        email.length <= '@kampus.ac.id'.length) {
+                      return 'Gunakan email kampus yang berakhiran @kampus.ac.id';
                     }
                     return null;
                   },
@@ -182,32 +208,21 @@ bool _obscureConfirm = true;
                 _label('Password'),
                 TextFormField(
                   controller: _passController,
-                  obscureText: _obscurePass,
+                  obscureText: true,
                   textInputAction: TextInputAction.next,
-                  decoration: _decoration('Minimal 8 karakter', suffixIcon: IconButton(
-                    onPressed: () => setState(() => _obscurePass = !_obscurePass),
-                    icon: Icon(
-                      _obscurePass
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: const Color(0xFF64748B),
-                    ),
-                  )),
+                  decoration: _decoration(
+                    'Minimal 8 karakter',
+                    helper: 'Minimal 8 karakter, kombinasi huruf dan angka',
+                  ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Password wajib diisi';
-                    if (v.length < 8) return 'Minimal 8 karakter';
                     final hasLetter = RegExp(r'[A-Za-z]').hasMatch(v);
                     final hasDigit = RegExp(r'[0-9]').hasMatch(v);
-                    if (!hasLetter || !hasDigit) {
-                      return 'Harus kombinasi huruf dan angka';
+                    if (v.length < 8 || !hasLetter || !hasDigit) {
+                      return 'Password minimal 8 karakter. Kombinasikan huruf dan angka.';
                     }
                     return null;
                   },
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Minimal 8 karakter, kombinasi huruf dan angka',
-                  style: TextStyle(fontSize: 12, color: _grey),
                 ),
 
                 const SizedBox(height: 16),
@@ -216,27 +231,15 @@ bool _obscureConfirm = true;
                 _label('Konfirmasi password'),
                 TextFormField(
                   controller: _confirmController,
-                  obscureText: _obscureConfirm,
+                  obscureText: true,
                   textInputAction: TextInputAction.done,
-                  decoration: _decoration(
-                    'Ketik ulang password',
-                    suffixIcon: IconButton(
-                      onPressed: () =>
-                          setState(() => _obscureConfirm = !_obscureConfirm),
-                      icon: Icon(
-                        _obscureConfirm
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: _grey,
-                      ),
-                    ),
-                  ),
+                  decoration: _decoration('Ketik ulang password'),
                   validator: (v) {
                     if (v == null || v.isEmpty) {
                       return 'Konfirmasi password wajib diisi';
                     }
                     if (v != _passController.text) {
-                      return 'Password tidak sama';
+                      return 'Konfirmasi belum sama dengan password. Ketik ulang ya.';
                     }
                     return null;
                   },
@@ -250,6 +253,7 @@ bool _obscureConfirm = true;
                   initialValue: _selectedProdi,
                   isExpanded: true,
                   icon: const Icon(Icons.keyboard_arrow_down, color: _grey),
+                  borderRadius: BorderRadius.circular(12),
                   decoration: _decoration('Pilih program studi'),
                   hint: const Text(
                     'Pilih program studi',
@@ -263,12 +267,12 @@ bool _obscureConfirm = true;
                       v == null ? 'Program studi wajib dipilih' : null,
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
                 // Tombol Daftar
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 48,
                   child: ElevatedButton(
                     onPressed: _register,
                     style: ElevatedButton.styleFrom(
@@ -289,7 +293,7 @@ bool _obscureConfirm = true;
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
                 // Sudah punya akun? Login
                 Center(
@@ -301,11 +305,10 @@ bool _obscureConfirm = true;
                         TextSpan(
                           text: 'Login',
                           style: const TextStyle(
-                            color: _link,
+                            color: _primary,
                             fontWeight: FontWeight.w700,
                           ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () => Navigator.pop(context),
+                          recognizer: _loginTap,
                         ),
                       ],
                     ),
