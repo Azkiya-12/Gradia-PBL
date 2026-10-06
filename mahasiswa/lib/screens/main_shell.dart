@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
-import 'nilai_screen.dart';
+import 'nilai_akademik_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});

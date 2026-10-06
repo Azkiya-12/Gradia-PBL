@@ -1,6 +1,212 @@
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
 import 'detail_mata_kuliah_screen.dart';
+
+class NilaiScreen extends StatefulWidget {
+  // Dipanggil saat "Kembali ke dashboard" ditekan (diatur oleh MainShell)
+  final VoidCallback? onKembaliKeDashboard;
+
+  const NilaiScreen({super.key, this.onKembaliKeDashboard});
+
+  @override
+  State<NilaiScreen> createState() => _NilaiScreenState();
+}
+
+class _NilaiScreenState extends State<NilaiScreen> {
+  static const _primary = Color(0xFF4F46E5);
+  static const _dark = Color(0xFF0F172A);
+  static const _grey = Color(0xFF64748B);
+  static const _border = Color(0xFFE2E8F0);
+
+  // Data contoh. Nanti diganti dengan data dari backend.
+  static const Map<String, List<MataKuliah>> _dataNilai = {
+    'Semester Ganjil 26/27': [
+      MataKuliah('Desain User Interface dan User Experience', 'Desain UI/UX',
+          3, 92, 'A'),
+      MataKuliah('Jaringan Komputer', 'Jaringan Komputer', 4, 84, 'B+'),
+      MataKuliah('Pemrograman Mobile', 'Pemrograman Mobile', 4, 78, 'B'),
+      MataKuliah(
+          'Pemrograman Web Framework', 'Web Framework', 3, 88, 'A-'),
+    ],
+    // Kosong = nilai belum tersedia
+    'Semester Genap 26/27': [],
+  };
+
+  String _selectedSemester = 'Semester Ganjil 26/27';
+
+  // Ubah ke true untuk melihat tampilan "Koneksi terputus"
+  static const bool _simulasiOffline = false;
+
+  bool _koneksiTerputus = _simulasiOffline;
+
+  Future<void> _cobaLagi() async {
+    await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+    setState(() => _koneksiTerputus = false);
+  }
+
+  List<MataKuliah> get _courses =>
+      _dataNilai[_selectedSemester] ?? const [];
+
+  int get _totalSks => _courses.fold(0, (sum, c) => sum + c.sks);
+
+  // Pilih semester lewat bottom sheet
+  void _pilihSemester() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: _border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 12),
+              for (final semester in _dataNilai.keys)
+                ListTile(
+                  title: Text(
+                    semester,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: semester == _selectedSemester ? _primary : _dark,
+                    ),
+                  ),
+                  trailing: semester == _selectedSemester
+                      ? const Icon(Icons.check, color: _primary)
+                      : null,
+                  onTap: () {
+                    setState(() => _selectedSemester = semester);
+                    Navigator.pop(context);
+                  },
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final courses = _courses;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Nilai akademik',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: _dark,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Pilihan semester (disembunyikan saat koneksi terputus)
+              if (!_koneksiTerputus)
+                InkWell(
+                  onTap: _pilihSemester,
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: _border),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _selectedSemester,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: _dark,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.keyboard_arrow_down, color: _grey),
+                      ],
+                    ),
+                  ),
+                ),
+
+              Expanded(
+                child: _koneksiTerputus
+                    ? _KoneksiTerputus(
+                        onCobaLagi: _cobaLagi,
+                        onBack: () => widget.onKembaliKeDashboard?.call(),
+                      )
+                    : courses.isEmpty
+                        ? _NilaiKosong(
+                            onAktifkan: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Notifikasi nilai diaktifkan'),
+                                ),
+                              );
+                            },
+                            onLihatSemesterLain: _pilihSemester,
+                          )
+                        : _buildDaftarNilai(courses),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDaftarNilai(List<MataKuliah> courses) {
+    return ListView(
+      padding: const EdgeInsets.only(top: 24, bottom: 16),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '${courses.length} mata kuliah',
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: _dark,
+              ),
+            ),
+            Text(
+              '$_totalSks SKS',
+              style: const TextStyle(fontSize: 13, color: _grey),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        for (final course in courses) _CourseCard(course: course),
+      ],
+    );
+  }
+}
 
 class MataKuliah {
   final String nama;
@@ -8,224 +214,282 @@ class MataKuliah {
   final int sks;
   final int persen;
   final String huruf;
-  final Color aksen;
-  final Color badgeBg;
-  final Color badgeFg;
-  const MataKuliah({
-    required this.nama,
-    required this.namaPendek,
-    required this.sks,
-    required this.persen,
-    required this.huruf,
-    required this.aksen,
-    required this.badgeBg,
-    required this.badgeFg,
-  });
+
+  const MataKuliah(
+      this.nama, this.namaPendek, this.sks, this.persen, this.huruf);
 }
 
-// Data dummy untuk demo UTS
-const _daftarMatkul = <MataKuliah>[
-  MataKuliah(
-    nama: 'Desain User Interface dan User Experience',
-    namaPendek: 'Desain UI dan UX',
-    sks: 3,
-    persen: 92,
-    huruf: 'A',
-    aksen: AppColors.primary,
-    badgeBg: AppColors.successSoft,
-    badgeFg: AppColors.success,
-  ),
-  MataKuliah(
-    nama: 'Jaringan Komputer',
-    namaPendek: 'Jaringan Komputer',
-    sks: 4,
-    persen: 84,
-    huruf: 'B+',
-    aksen: Color(0xFF0D9488),
-    badgeBg: AppColors.primarySoft,
-    badgeFg: AppColors.primary,
-  ),
-  MataKuliah(
-    nama: 'Pemrograman Mobile',
-    namaPendek: 'Pemrograman Mobile',
-    sks: 4,
-    persen: 78,
-    huruf: 'B',
-    aksen: AppColors.orange,
-    badgeBg: Color(0xFFF0F9FF),
-    badgeFg: Color(0xFF0369A1),
-  ),
-  MataKuliah(
-    nama: 'Pemrograman Web Framework',
-    namaPendek: 'Pemrograman Web',
-    sks: 3,
-    persen: 88,
-    huruf: 'A-',
-    aksen: Color(0xFFDB2777),
-    badgeBg: Color(0xFFF0FDFA),
-    badgeFg: Color(0xFF0D9488),
-  ),
-];
+class _CourseCard extends StatelessWidget {
+  final MataKuliah course;
 
-class NilaiAkademikScreen extends StatefulWidget {
-  const NilaiAkademikScreen({super.key});
+  const _CourseCard({required this.course});
 
-  @override
-  State<NilaiAkademikScreen> createState() => _NilaiAkademikScreenState();
-}
-
-class _NilaiAkademikScreenState extends State<NilaiAkademikScreen> {
-  static const _semesters = [
-    'Semester Ganjil 26/27',
-    'Semester Genap 25/26',
-    'Semester Ganjil 25/26',
-  ];
-  String _semester = _semesters.first;
+  // Warna chip nilai: [latar, teks]
+  List<Color> get _gradeColors {
+    switch (course.huruf) {
+      case 'A':
+        return const [Color(0xFFE8F8EF), Color(0xFF059669)];
+      case 'A-':
+        return const [Color(0xFFE6FAF5), Color(0xFF0D9488)];
+      case 'B+':
+        return const [Color(0xFFEEF2FF), Color(0xFF4F46E5)];
+      case 'B':
+        return const [Color(0xFFE8F4FD), Color(0xFF0369A1)];
+      default:
+        return const [Color(0xFFF1F5F9), Color(0xFF64748B)];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final totalSks = _daftarMatkul.fold<int>(0, (a, m) => a + m.sks);
+    final colors = _gradeColors;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Nilai akademik',
-              style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  color: AppColors.ink)),
-          const SizedBox(height: 16),
-          _semesterDropdown(),
-          const SizedBox(height: 28),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('${_daftarMatkul.length} mata kuliah',
-                  style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink)),
-              Text('$totalSks SKS',
-                  style:
-                      const TextStyle(fontSize: 12, color: AppColors.muted)),
-            ],
-          ),
-          const SizedBox(height: 14),
-          for (final mk in _daftarMatkul) ...[
-            _MatkulCard(
-              mk: mk,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                    builder: (_) => DetailMataKuliahScreen(mk: mk)),
-              ),
-            ),
-            const SizedBox(height: 10),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _semesterDropdown() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _semester,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.muted),
-          style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.ink),
-          borderRadius: BorderRadius.circular(12),
-          items: [
-            for (final s in _semesters)
-              DropdownMenuItem(value: s, child: Text(s)),
-          ],
-          onChanged: (v) => setState(() => _semester = v ?? _semester),
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.white,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
-      ),
-    );
-  }
-}
-
-class _MatkulCard extends StatelessWidget {
-  final MataKuliah mk;
-  final VoidCallback onTap;
-  const _MatkulCard({required this.mk, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+        child: InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => DetailMataKuliahScreen(mk: course),
+            ),
           ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Column(
               children: [
-                Container(width: 5, color: mk.aksen),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(mk.nama,
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.ink)),
-                              const SizedBox(height: 4),
-                              Text('${mk.sks} SKS · ${mk.persen}%',
-                                  style: const TextStyle(
-                                      fontSize: 12, color: AppColors.muted)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          constraints: const BoxConstraints(minWidth: 38),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 9),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: mk.badgeBg,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(mk.huruf,
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: mk.badgeFg)),
-                        ),
-                      ],
+                Text(
+                  course.nama,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${course.sks} SKS · ${course.persen}%',
+                  style: const TextStyle(
+                      fontSize: 12, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: 44,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: colors[0],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    course.huruf,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: colors[1],
                     ),
                   ),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------
+// Tampilan "Nilai semester ini belum tersedia"
+// ---------------------------------------------------------------
+class _NilaiKosong extends StatelessWidget {
+  final VoidCallback onAktifkan;
+  final VoidCallback onLihatSemesterLain;
+
+  const _NilaiKosong({
+    required this.onAktifkan,
+    required this.onLihatSemesterLain,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 112,
+              height: 112,
+              decoration: const BoxDecoration(
+                color: Color(0xFFEEF2FF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.sticky_note_2_outlined,
+                size: 48,
+                color: Color(0xFF4F46E5),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Nilai semester ini belum tersedia',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Dosen belum mengunggah nilai untuk semester ini. '
+                'Aktifkan notifikasi agar kamu tahu begitu nilai masuk.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.45,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: onAktifkan,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4F46E5),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Aktifkan notifikasi nilai',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: onLihatSemesterLain,
+              child: const Text(
+                'Lihat semester lain',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------
+// Tampilan "Koneksi terputus"
+// ---------------------------------------------------------------
+class _KoneksiTerputus extends StatelessWidget {
+  final VoidCallback onCobaLagi;
+  final VoidCallback onBack;
+
+  const _KoneksiTerputus({
+    required this.onCobaLagi,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 112,
+              height: 112,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFEF2F2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.wifi_off_rounded,
+                size: 48,
+                color: Color(0xFFDC2626),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Koneksi terputus',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Periksa Wi-Fi atau data seluler kamu, lalu coba lagi. '
+                'Data yang sudah tersimpan tetap aman.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.45,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: onCobaLagi,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4F46E5),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Coba lagi',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: onBack,
+              child: const Text(
+                'Kembali ke dashboard',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

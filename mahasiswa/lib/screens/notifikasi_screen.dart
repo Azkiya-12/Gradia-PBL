@@ -9,11 +9,10 @@ class _Notif {
   final String judul;
   final String isi;
   final String waktu;
-  final int kategori; // 1 = nilai, 2 = pengumuman, 0 = lainnya
+  final int kategori; 
   const _Notif(this.icon, this.judul, this.isi, this.waktu, this.kategori);
 }
 
-// Data dummy untuk demo
 const _data = <_Notif>[
   _Notif(Icons.article_outlined, 'Nilai mata kuliah',
       'Nilai Algoritma & Struktur Data telah diperbarui', '10:24', 1),
@@ -25,7 +24,6 @@ const _data = <_Notif>[
       'Aplikasi Gradia diperbarui ke versi terbaru', 'Kemarin', 0),
 ];
 
-/// Screen 15 - Notifikasi
 class NotifikasiScreen extends StatefulWidget {
   const NotifikasiScreen({super.key});
 

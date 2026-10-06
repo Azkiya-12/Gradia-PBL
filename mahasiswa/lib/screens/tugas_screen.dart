@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class TugasScreen extends StatefulWidget {
-  // Dipanggil saat tombol "Lihat Evaluasi AI" ditekan (diatur oleh Dashboard)
   final VoidCallback? onLihatEvaluasiAI;
 
   const TugasScreen({super.key, this.onLihatEvaluasiAI});
@@ -16,7 +15,6 @@ class _TugasScreenState extends State<TugasScreen> {
   static const _grey = Color(0xFF64748B);
   static const _border = Color(0xFFE2E8F0);
 
-  // Ubah ke true untuk melihat tampilan "Semua tugas beres"
   static const bool _tampilkanKosong = false;
 
   String _selectedFilter = 'Semua';
@@ -28,7 +26,6 @@ class _TugasScreenState extends State<TugasScreen> {
     'Terlewat',
   ];
 
-  // Data contoh. Nanti diganti dengan data dari backend.
   static const List<_Tugas> _semuaTugas = [
     _Tugas(
       title: 'Usability Test Report',
@@ -258,9 +255,6 @@ class _TugasItem extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------
-// Tab filter
-// ---------------------------------------------------------------
 class _FilterTab extends StatelessWidget {
   final String label;
   final bool active;
@@ -275,13 +269,15 @@ class _FilterTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque, // <-- tambahan 1
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         height: 36,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? Colors.white : Colors.transparent,
+          // <-- tambahan 2: ganti Colors.transparent
+          color: active ? Colors.white : const Color(0x00FFFFFF),
           borderRadius: BorderRadius.circular(10),
           boxShadow: active
               ? const [
@@ -307,9 +303,6 @@ class _FilterTab extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------
-// Tampilan "Semua tugas beres"
-// ---------------------------------------------------------------
 class _TugasKosong extends StatelessWidget {
   final VoidCallback? onLihatEvaluasiAI;
 

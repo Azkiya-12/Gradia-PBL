@@ -28,6 +28,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmController = TextEditingController();
   late final TapGestureRecognizer _loginTap;
   String? _selectedProdi;
+  bool _obscurePass = true;
+  bool _obscureConfirm = true;
 
   final List<String> _prodiList = const [
     'Teknologi Informasi',
@@ -67,7 +69,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   /// [helper] tampil di bawah input, otomatis diganti pesan error kalau ada error.
-  InputDecoration _decoration(String hint, {String? helper}) {
+  InputDecoration _decoration(String hint,
+    {String? helper, Widget? suffixIcon}) {
     OutlineInputBorder outline(Color color) => OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: color),
@@ -81,6 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       errorStyle: const TextStyle(fontSize: 12, height: 1.4, color: _danger),
       errorMaxLines: 3,
       filled: true,
+      suffixIcon: suffixIcon,
       // Latar jadi merah muda saat field error (sesuai desain)
       fillColor: WidgetStateColor.resolveWith(
         (states) =>
@@ -211,10 +215,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: true,
                   textInputAction: TextInputAction.next,
                   decoration: _decoration(
-                    'Minimal 8 karakter',
-                    helper: 'Minimal 8 karakter, kombinasi huruf dan angka',
+                  'Minimal 8 karakter',
+                  helper: 'Minimal 8 karakter, kombinasi huruf dan angka',
+                  suffixIcon: IconButton(
+                    onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                    icon: Icon(
+                      _obscurePass
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: _grey,
+                    ),
                   ),
-                  validator: (v) {
+                ),
+                    validator: (v) {
                     if (v == null || v.isEmpty) return 'Password wajib diisi';
                     final hasLetter = RegExp(r'[A-Za-z]').hasMatch(v);
                     final hasDigit = RegExp(r'[0-9]').hasMatch(v);
@@ -233,7 +246,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _confirmController,
                   obscureText: true,
                   textInputAction: TextInputAction.done,
-                  decoration: _decoration('Ketik ulang password'),
+                  decoration: _decoration(
+                  'Ketik ulang password',
+                  suffixIcon: IconButton(
+                    onPressed: () =>
+                        setState(() => _obscureConfirm = !_obscureConfirm),
+                    icon: Icon(
+                      _obscureConfirm
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: _grey,
+                    ),
+                  ),
+                ),
                   validator: (v) {
                     if (v == null || v.isEmpty) {
                       return 'Konfirmasi password wajib diisi';

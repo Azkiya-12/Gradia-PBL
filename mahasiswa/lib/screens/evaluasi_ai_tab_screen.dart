@@ -83,3 +83,13 @@ class _EvaluasiAiTabScreenState extends State<EvaluasiAiTabScreen> {
     );
   }
 }
+
+class EvaluasiAiContent extends StatelessWidget {
+  const EvaluasiAiContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Desain tab "Evaluasi" masih kosong, jadi belum ada isinya.
+    return const SizedBox.shrink();
+  }
+}

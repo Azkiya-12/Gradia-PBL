@@ -13,7 +13,7 @@ class DashboardScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -132,7 +132,11 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              _SectionHeader(title: 'Ringkasan nilai', action: 'Lihat semua'),
+              _SectionHeader(
+                title: 'Ringkasan nilai',
+                action: 'Lihat semua',
+                onTap: () => onTabChange?.call(1),
+              ),
 
               const SizedBox(height: 12),
 
@@ -252,30 +256,6 @@ class DashboardScreen extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-
-      bottomNavigationBar: Container(
-        height: 71,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _BottomNavItem(
-              icon: Icons.home_outlined,
-              label: 'Dashboard',
-              active: true,
-            ),
-            _BottomNavItem(icon: Icons.description_outlined, label: 'Nilai'),
-            _BottomNavItem(
-              icon: Icons.auto_awesome_outlined,
-              label: 'Evaluasi AI',
-            ),
-            _BottomNavItem(icon: Icons.person_outline, label: 'Akun'),
-          ],
         ),
       ),
     );
