@@ -504,7 +504,7 @@ class LineChartCard extends StatelessWidget {
             child: CustomPaint(painter: _LinePainter(), size: Size.infinite),
           ),
           const SizedBox(height: 12),
-          const Text('IPS per semester, naik dari 3.1 ke 3.7',
+          const Text('Perkembangan Nilai menaik dari 3.1 ke 3.7',
               style: TextStyle(fontSize: 12, color: AppColors.muted)),
         ],
       ),

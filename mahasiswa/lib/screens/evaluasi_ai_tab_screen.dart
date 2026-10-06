@@ -3,7 +3,7 @@ import '../app_colors.dart';
 import '../demo_data.dart';
 import '../widgets/common.dart';
 import 'analisis_ai_screen.dart';
-import 'evaluasi_ai_screen.dart';
+import 'evaluasi_ai_screen.dart'; // berisi EvaluasiAiContent (menu Kelebihan/Kekurangan/Saran)
 import 'kalkulator_target_screen.dart';
 
 /// Screen 11 - Tab "Evaluasi AI" di bottom nav (Analisis AI / Evaluasi / Kalkulator)
@@ -81,15 +81,5 @@ class _EvaluasiAiTabScreenState extends State<EvaluasiAiTabScreen> {
         ],
       ),
     );
-  }
-}
-
-class EvaluasiAiContent extends StatelessWidget {
-  const EvaluasiAiContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // Desain tab "Evaluasi" masih kosong, jadi belum ada isinya.
-    return const SizedBox.shrink();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'nilai_akademik_screen.dart';
+import 'evaluasi_ai_tab_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -27,7 +28,7 @@ class _MainShellState extends State<MainShell> {
         children: [
           DashboardScreen(onTabChange: _goTo),
           NilaiScreen(onKembaliKeDashboard: () => _goTo(0)),
-          const _SegeraHadir(title: 'Evaluasi AI'),
+          const EvaluasiAiTabScreen (), 
           const _SegeraHadir(title: 'Akun'),
         ],
       ),
