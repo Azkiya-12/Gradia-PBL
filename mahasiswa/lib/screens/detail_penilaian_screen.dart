@@ -29,7 +29,7 @@ class _PenilaianData {
 const _kuis = _PenilaianData(
   nilaiTotal: '18 / 20',
   judulButir: 'Nilai per soal',
-  hint: 'Tap soal yang ada pengurangan nilai untuk ajukan review.',
+  hint: 'Tap soal yang ada pengurangan nilai untuk ajukan koreksi nilai.',
   butir: [
     _Butir('Soal 1 · Hierarki visual', '5 / 5'),
     _Butir('Soal 2 · Prinsip Gestalt', '4 / 5',

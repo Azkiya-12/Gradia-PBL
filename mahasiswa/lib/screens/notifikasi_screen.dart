@@ -9,19 +9,53 @@ class _Notif {
   final String judul;
   final String isi;
   final String waktu;
-  final int kategori; 
-  const _Notif(this.icon, this.judul, this.isi, this.waktu, this.kategori);
+  const _Notif(this.icon, this.judul, this.isi, this.waktu);
 }
 
-const _data = <_Notif>[
+// Tab "Semua" (ringkasan)
+const _semua = <_Notif>[
   _Notif(Icons.article_outlined, 'Nilai mata kuliah',
-      'Nilai Algoritma & Struktur Data telah diperbarui', '10:24', 1),
+      'Nilai Algoritma & Struktur Data telah diperbarui', '10:24'),
   _Notif(Icons.notifications_none, 'Pengumuman kampus',
-      'Jadwal Ujian Semester Ganjil telah diumumkan', '09:00', 2),
+      'Jadwal Ujian Semester Ganjil telah diumumkan', '09:00'),
   _Notif(Icons.access_time, 'Reminder tugas',
-      'Tugas Pemrograman Mobile dikumpulkan besok', '08:30', 0),
+      'Tugas Pemrograman Mobile dikumpulkan besok', '08:30'),
   _Notif(Icons.info_outline, 'Update sistem',
-      'Aplikasi Gradia diperbarui ke versi terbaru', 'Kemarin', 0),
+      'Aplikasi Gradia diperbarui ke versi terbaru', 'Kemarin'),
+];
+
+// Tab "Nilai"
+const _nilai = <_Notif>[
+  _Notif(Icons.article_outlined, 'Nilai mata kuliah',
+      'Nilai Algoritma & Struktur Data telah diperbarui', '10:24'),
+  _Notif(Icons.article_outlined, 'Nilai UTS',
+      'Nilai UTS Basis Data sudah tersedia', 'Kemarin'),
+  _Notif(Icons.article_outlined, 'Nilai tugas',
+      'Tugas 3 Desain User Interface sudah dinilai', 'Kemarin'),
+  _Notif(Icons.article_outlined, 'Nilai kuis',
+      'Nilai Kuis 2 Pemrograman Mobile telah ditambahkan', '2 hari lalu'),
+  _Notif(Icons.article_outlined, 'Nilai praktikum',
+      'Nilai praktikum Jaringan Komputer telah diperbarui', '3 hari lalu'),
+  _Notif(Icons.article_outlined, 'IPS semester',
+      'IPS semester ini sudah dihitung dan tersedia', '5 hari lalu'),
+];
+
+// Tab "Pengumuman"
+const _pengumuman = <_Notif>[
+  _Notif(Icons.notifications_none, 'Pengumuman kampus',
+      'Jadwal Ujian Semester Ganjil telah diumumkan', '09:00'),
+  _Notif(Icons.notifications_none, 'Pengumuman kampus',
+      'Pendaftaran wisuda periode berikutnya dibuka', 'Kemarin'),
+  _Notif(Icons.notifications_none, 'Pengumuman prodi',
+      'Kuliah Basis Data Jumat dipindah ke ruang B.2.1', 'Kemarin'),
+  _Notif(Icons.notifications_none, 'Beasiswa',
+      'Pendaftaran beasiswa prestasi dibuka hingga akhir bulan',
+      '2 hari lalu'),
+  _Notif(Icons.notifications_none, 'Layanan perpustakaan',
+      'Perpustakaan tutup pada akhir pekan ini', '3 hari lalu'),
+  _Notif(Icons.notifications_none, 'Kegiatan kampus',
+      'Seminar teknologi mobile terbuka untuk semua mahasiswa',
+      '5 hari lalu'),
 ];
 
 class NotifikasiScreen extends StatefulWidget {
@@ -61,7 +95,9 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
   }
 
   Widget _listView(BuildContext context) {
-    final items = _tab == 0 ? _data : _data.where((n) => n.kategori == _tab);
+    // Urutan sama dengan tab: 0 = Semua, 1 = Nilai, 2 = Pengumuman
+    final items = const [_semua, _nilai, _pengumuman][_tab];
+
     return SubScreen(
       title: 'Notifikasi',
       child: Column(

@@ -40,9 +40,8 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
       return;
     }
 
-    // TODO: kirim permintaan review ke backend di sini
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Permintaan review terkirim')),
+      const SnackBar(content: Text('Permintaan koreksi terkirim')),
     );
     Navigator.pop(context);
   }
@@ -71,7 +70,7 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    'Ajukan review nilai',
+                    'Ajukan koreksi nilai',
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
@@ -120,7 +119,7 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
               const SizedBox(height: 24),
 
               const Text(
-                'Alasan review',
+                'Komentar',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -142,7 +141,7 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
                 },
                 style: const TextStyle(fontSize: 14, color: _dark),
                 decoration: InputDecoration(
-                  hintText: 'Jelaskan bagian jawaban yang perlu ditinjau ulang',
+                  hintText: 'Jelaskan bagian jawaban yang menurutmu perlu dicek ulang oleh dosen',
                   hintStyle:
                       const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
                   filled: true,
@@ -164,6 +163,12 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
                   ),
                 ),
               ),
+                const SizedBox(height: 8),
+
+                      const Text(
+                        'Batas pengajuan 3 hari setelah nilai dirilis.',
+                        style: TextStyle(fontSize: 12, color: _grey),
+                      ),
 
               // Pesan error
               if (_hasError) ...[
@@ -179,8 +184,8 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Tulis alasan review agar dosen tahu bagian yang '
-                        'perlu ditinjau. Contoh: contoh Common Region pada '
+                        'Tulis alasan koreksi agar dosen tahu bagian yang '
+                        'perlu ditinjau. Contoh: Common Region pada '
                         'kartu produk sudah sesuai definisi.',
                         style: TextStyle(
                           fontSize: 12,
@@ -209,7 +214,7 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
                     ),
                   ),
                   child: const Text(
-                    'Kirim permintaan review',
+                    'Kirim permintaan koreksi',
                     style:
                         TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                   ),
