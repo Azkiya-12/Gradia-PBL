@@ -3,9 +3,6 @@ import '../app_colors.dart';
 import '../widgets/common.dart';
 import 'ajukan_review_screen.dart';
 
-// ---------------------------------------------------------------
-// Data dummy per penilaian
-// ---------------------------------------------------------------
 class _Butir {
   final String title;
   final String nilai;
@@ -19,10 +16,6 @@ class _PenilaianData {
   final String hint;
   final List<_Butir> butir;
   final String komentar;
-  final List<String> stat; // rata-rata, median, tertinggi, terendah
-  final List<String> histLabels;
-  final List<double> histHeights;
-  final int histMine; // indeks batang milikmu
 
   const _PenilaianData({
     required this.nilaiTotal,
@@ -30,10 +23,6 @@ class _PenilaianData {
     required this.hint,
     required this.butir,
     required this.komentar,
-    required this.stat,
-    required this.histLabels,
-    required this.histHeights,
-    required this.histMine,
   });
 }
 
@@ -51,10 +40,6 @@ const _kuis = _PenilaianData(
   ],
   komentar:
       'Analisis Gestalt sudah kuat. Perbaiki contoh Common Region dan tambahkan solusi pada microcopy error.',
-  stat: ['15.6', '16', '20', '8'],
-  histLabels: ['8–10', '11–13', '14–16', '17–18', '19–20'],
-  histHeights: [14.0, 28.0, 35.0, 52.0, 22.0],
-  histMine: 3,
 );
 
 const _wireframe = _PenilaianData(
@@ -73,10 +58,6 @@ const _wireframe = _PenilaianData(
   ],
   komentar:
       'Wireframe sudah rapi dan konsisten. Lengkapi state error dan perjelas hierarki antara judul dan konten.',
-  stat: ['84.5', '86', '98', '60'],
-  histLabels: ['60–69', '70–79', '80–89', '90–94', '95–100'],
-  histHeights: [12.0, 24.0, 40.0, 52.0, 18.0],
-  histMine: 3,
 );
 
 const _uts = _PenilaianData(
@@ -92,10 +73,6 @@ const _uts = _PenilaianData(
   ],
   komentar:
       'Pemahaman konsep sudah baik. Perdalam analisis heuristik dan sertakan contoh nyata pada jawaban esai.',
-  stat: ['79.2', '80', '96', '55'],
-  histLabels: ['55–64', '65–74', '75–84', '85–94', '95–100'],
-  histHeights: [12.0, 24.0, 40.0, 52.0, 16.0],
-  histMine: 3,
 );
 
 const Map<String, _PenilaianData> _dataPenilaian = {
@@ -160,26 +137,6 @@ class DetailPenilaianScreen extends StatelessWidget {
           const SectionTitle('Komentar dosen'),
           const SizedBox(height: 12),
           InfoCard(d.komentar),
-          const SizedBox(height: 24),
-          const SectionTitle('Statistik kelas'),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: _StatBox('Rata-rata', d.stat[0])),
-              const SizedBox(width: 8),
-              Expanded(child: _StatBox('Median', d.stat[1])),
-              const SizedBox(width: 8),
-              Expanded(child: _StatBox('Tertinggi', d.stat[2])),
-              const SizedBox(width: 8),
-              Expanded(child: _StatBox('Terendah', d.stat[3])),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _Histogram(
-            labels: d.histLabels,
-            heights: d.histHeights,
-            mine: d.histMine,
-          ),
         ],
       ),
     );
@@ -194,7 +151,9 @@ class _SoalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    // GestureDetector: bisa diklik tanpa efek percikan (ripple)
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: note == null
           ? null
           : () => push(
@@ -237,99 +196,6 @@ class _SoalRow extends StatelessWidget {
                     color: AppColors.ink)),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _StatBox extends StatelessWidget {
-  final String label;
-  final String value;
-  const _StatBox(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-      child: Column(
-        children: [
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(label,
-                style: const TextStyle(fontSize: 12, color: AppColors.muted)),
-          ),
-          const SizedBox(height: 6),
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink)),
-        ],
-      ),
-    );
-  }
-}
-
-/// Histogram sebaran nilai kelas (data dummy). Batang biru = rentang nilaimu.
-class _Histogram extends StatelessWidget {
-  final List<String> labels;
-  final List<double> heights;
-  final int mine;
-
-  const _Histogram({
-    required this.labels,
-    required this.heights,
-    required this.mine,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 56,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                for (var i = 0; i < heights.length; i++)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Container(
-                        height: heights[i],
-                        decoration: BoxDecoration(
-                          color: i == mine
-                              ? AppColors.primary
-                              : const Color(0xFFC7D2FE),
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(6)),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              for (final l in labels)
-                Expanded(
-                  child: Center(
-                    child: Text(l,
-                        style: const TextStyle(
-                            fontSize: 11, color: AppColors.muted)),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Text('Sebaran nilai kelas',
-              style: TextStyle(fontSize: 12, color: AppColors.muted)),
-        ],
       ),
     );
   }

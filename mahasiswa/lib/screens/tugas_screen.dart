@@ -271,8 +271,7 @@ class _FilterTab extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque, // <-- tambahan 1
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
         height: 36,
         alignment: Alignment.center,
         decoration: BoxDecoration(
