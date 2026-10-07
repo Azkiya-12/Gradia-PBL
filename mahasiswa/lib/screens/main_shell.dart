@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'nilai_akademik_screen.dart';
 import 'evaluasi_ai_tab_screen.dart';
+import 'akun_screen.dart'; // <-- DIUBAH (import baru)
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -28,8 +29,8 @@ class _MainShellState extends State<MainShell> {
         children: [
           DashboardScreen(onTabChange: _goTo),
           NilaiScreen(onKembaliKeDashboard: () => _goTo(0)),
-          const EvaluasiAiTabScreen (), 
-          const _SegeraHadir(title: 'Akun'),
+          const SafeArea(bottom: false, child: EvaluasiAiTabScreen()),
+          const SafeArea(bottom: false, child: AkunScreen()), // <-- DIUBAH
         ],
       ),
       bottomNavigationBar: Container(
@@ -66,34 +67,6 @@ class _MainShellState extends State<MainShell> {
               label: 'Akun',
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Halaman sementara untuk tab yang belum dibuat.
-/// Nanti diganti dengan halaman aslinya.
-class _SegeraHadir extends StatelessWidget {
-  final String title;
-
-  const _SegeraHadir({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: Text(
-            '$title\nsegera hadir',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-            ),
-          ),
         ),
       ),
     );

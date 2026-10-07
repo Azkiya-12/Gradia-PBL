@@ -121,7 +121,7 @@ class _PengaturanNotifikasiScreenState
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 48, // <-- DIUBAH (tadinya 50)
                 child: ElevatedButton(
                   onPressed: _simpan,
                   style: ElevatedButton.styleFrom(
@@ -173,8 +173,8 @@ class _SwitchRow extends StatelessWidget {
                 Text(
                   judul,
                   style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 15, // <-- DIUBAH (tadinya 14)
+                    fontWeight: FontWeight.w600, // <-- DIUBAH (tadinya w700)
                     color: Color(0xFF0F172A),
                   ),
                 ),
