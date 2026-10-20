@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'main_shell.dart';
-import 'lupa_password_screen.dart';
+import '../dashboard/main_shell.dart';
+import '../auth/lupa_password_screen.dart';
 import 'register_screen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

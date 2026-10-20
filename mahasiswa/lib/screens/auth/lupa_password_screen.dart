@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
-import '../widgets/common.dart';
+import '../../app_colors.dart';
+import '../../widgets/common.dart';
 
 /// Screen 03 - Lupa password
 class LupaPasswordScreen extends StatelessWidget {

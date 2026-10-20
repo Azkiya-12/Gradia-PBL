@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
-import '../widgets/common.dart';
+import '../../app_colors.dart';
+import '../../widgets/common.dart';
 import 'data_diri_screen.dart';
-import 'login_screen.dart';
-import 'pengaturan_notifikasi_screen.dart';
-import 'ubah_email_password_screen.dart';
+import '../auth/login_screen.dart';
+import '../notifikasi/pengaturan_notifikasi_screen.dart';
+import '../auth/ubah_email_password_screen.dart';
 
 /// Screen 16 - Tab "Akun" di bottom nav
 class AkunScreen extends StatelessWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/insight_widgets.dart';
+import '../../widgets/insight_widgets.dart';
 
 /// Screen 12 - Evaluasi AI: Kelebihan (data dummy)
 class KelebihanScreen extends StatelessWidget {

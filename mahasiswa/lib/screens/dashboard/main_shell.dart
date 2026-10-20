@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
-import 'nilai_akademik_screen.dart';
-import 'evaluasi_ai_tab_screen.dart';
-import 'akun_screen.dart'; // <-- DIUBAH (import baru)
+import '../akademik/nilai_akademik_screen.dart';
+import '../evaluasi_ai/evaluasi_ai_tab_screen.dart';
+import '../akun/akun_screen.dart'; // <-- DIUBAH (import baru)
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});

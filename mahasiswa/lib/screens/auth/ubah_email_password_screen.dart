@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../demo_data.dart';
-import '../widgets/common.dart';
+import '../../demo_data.dart';
+import '../../widgets/common.dart';
 
 /// Screen 20 - Ubah email / password (dengan validasi dan tampilan error)
 class UbahEmailPasswordScreen extends StatefulWidget {

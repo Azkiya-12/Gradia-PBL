@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
-import '../demo_data.dart';
-import '../widgets/common.dart';
+import '../../app_colors.dart';
+import '../../demo_data.dart';
+import '../../widgets/common.dart';
 import 'pengaturan_notifikasi_screen.dart';
 
 class _Notif {

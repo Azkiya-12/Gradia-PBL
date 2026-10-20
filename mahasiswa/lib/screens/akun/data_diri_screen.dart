@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/common.dart';
+import '../../widgets/common.dart';
 
 /// Screen 18 - Data diri
 class DataDiriScreen extends StatelessWidget {

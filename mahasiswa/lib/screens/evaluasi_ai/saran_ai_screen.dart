@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/insight_widgets.dart';
+import '../../widgets/insight_widgets.dart';
 
 /// Screen 14 - Evaluasi AI: Saran dari AI (data dummy)
 class SaranAiScreen extends StatelessWidget {

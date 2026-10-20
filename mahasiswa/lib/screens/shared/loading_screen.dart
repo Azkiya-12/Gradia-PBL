@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
-import '../widgets/common.dart';
-import 'login_screen.dart';
+import '../../app_colors.dart';
+import '../../widgets/common.dart';
+import '../auth/login_screen.dart';
 
 /// Screen 04 - Loading / splash. Otomatis lanjut ke Login setelah 2 detik.
 class LoadingScreen extends StatefulWidget {

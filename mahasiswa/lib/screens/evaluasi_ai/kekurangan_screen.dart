@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/insight_widgets.dart';
+import '../../widgets/insight_widgets.dart';
 
 /// Screen 13 - Evaluasi AI: Kekurangan (data dummy)
 class KekuranganScreen extends StatelessWidget {

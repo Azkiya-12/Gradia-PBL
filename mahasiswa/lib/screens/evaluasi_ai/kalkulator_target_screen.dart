@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
-import '../widgets/common.dart';
+import '../../app_colors.dart';
+import '../../widgets/common.dart';
 
 /// Isi tab "Kalkulator" (dipakai di screen 11 dan screen 14 + 25).
 /// Rumus: nilai akhir = 60% * nilai saat ini + 40% * UAS

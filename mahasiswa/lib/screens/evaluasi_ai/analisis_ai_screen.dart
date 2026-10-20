@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
-import '../widgets/common.dart';
+import '../../app_colors.dart';
+import '../../widgets/common.dart';
 
 /// Isi tab "Analisis AI" (dipakai di screen 11 dan screen 13).
 class AnalisisAiContent extends StatelessWidget {

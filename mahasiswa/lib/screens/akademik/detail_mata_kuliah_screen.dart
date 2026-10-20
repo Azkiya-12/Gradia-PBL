@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
-import '../widgets/common.dart';
+import '../../app_colors.dart';
+import '../../widgets/common.dart';
 import 'detail_penilaian_screen.dart';
 import 'nilai_akademik_screen.dart';
 

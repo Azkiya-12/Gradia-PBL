@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
-import '../widgets/common.dart';
-import 'ajukan_review_screen.dart';
+import '../../app_colors.dart';
+import '../../widgets/common.dart';
+import '../review/ajukan_review_screen.dart';
 
 class _Butir {
   final String title;

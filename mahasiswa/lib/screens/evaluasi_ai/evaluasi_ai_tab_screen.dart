@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
-import '../demo_data.dart';
-import '../widgets/common.dart';
+import '../../app_colors.dart';
+import '../../demo_data.dart';
+import '../../widgets/common.dart';
 import 'analisis_ai_screen.dart';
 import 'evaluasi_ai_screen.dart'; // berisi EvaluasiAiContent (menu Kelebihan/Kekurangan/Saran)
 import 'kalkulator_target_screen.dart';

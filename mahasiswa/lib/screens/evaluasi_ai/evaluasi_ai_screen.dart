@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
-import '../widgets/common.dart';
+import '../../app_colors.dart';
+import '../../widgets/common.dart';
 import 'kekurangan_screen.dart';
 import 'kelebihan_screen.dart';
 import 'saran_ai_screen.dart';
