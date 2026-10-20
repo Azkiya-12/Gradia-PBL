@@ -1,13 +1,11 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Menyimpan pengaturan notifikasi (setting) dengan shared_preferences.
 class PengaturanStorage {
   static const _kNilai = 'notif_nilai';
   static const _kPengumuman = 'notif_pengumuman';
   static const _kReminder = 'notif_reminder';
   static const _kUpdate = 'notif_update_sistem';
 
-  /// Baca pengaturan. Kalau belum pernah disimpan, pakai nilai awal.
   static Future<Map<String, bool>> muat() async {
     final prefs = await SharedPreferences.getInstance();
     return {
@@ -18,7 +16,6 @@ class PengaturanStorage {
     };
   }
 
-  /// Simpan pengaturan.
   static Future<void> simpan({
     required bool nilai,
     required bool pengumuman,

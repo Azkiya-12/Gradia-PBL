@@ -23,25 +23,25 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
-  /// Ambil semua tugas sekali.
+  /// Ambil semua tugas sekali
   Future<List<TugasItem>> semuaTugas() => select(tugas).get();
 
-  /// Pantau tugas: daftar otomatis diperbarui saat data berubah.
+  /// Pantau tugas: daftar otomatis diperbarui saat data berubah
   Stream<List<TugasItem>> pantauTugas() => select(tugas).watch();
 
   /// Ambil tugas berdasarkan status.
   Future<List<TugasItem>> tugasByStatus(String status) =>
       (select(tugas)..where((t) => t.status.equals(status))).get();
 
-  /// Tambah satu tugas.
+  /// Tambah satu tugas
   Future<int> tambahTugas(TugasCompanion data) => into(tugas).insert(data);
 
-  /// Ubah status tugas (contoh: To-Do menjadi Terkumpul).
+  /// Ubah status tugas 
   Future<int> ubahStatus(int id, String statusBaru) =>
       (update(tugas)..where((t) => t.id.equals(id)))
           .write(TugasCompanion(status: Value(statusBaru)));
 
-  /// Isi data awal sekali saja (saat tabel masih kosong).
+  /// Isi data awal sekali saja
   Future<void> isiDataAwal() async {
     final ada = await select(tugas).get();
     if (ada.isNotEmpty) return;
