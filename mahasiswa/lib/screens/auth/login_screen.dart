@@ -1,8 +1,8 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../dashboard/main_shell.dart';
 import '../auth/lupa_password_screen.dart';
-import 'register_screen.dart';
+import '../../services/rahasia_storage.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -33,23 +33,32 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
-    final id = _idController.text.trim();
-    final pass = _passController.text;
+ Future<void> _login() async {
+  final id = _idController.text.trim();
+  final pass = _passController.text;
 
-    // Salah jika kosong atau tidak cocok dengan akun contoh
-    final isValid = id.isNotEmpty;
+  // Mode demo: isian apa saja diterima, asal tidak kosong
+  final isValid = id.isNotEmpty && pass.isNotEmpty;
 
-    if (!isValid) {
-      setState(() => _hasError = true);
-      return;
-    }
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const MainShell()),
-    );
+  if (!isValid) {
+    setState(() => _hasError = true);
+    return;
   }
+
+  try {
+    await RahasiaStorage.simpanToken(
+      'token-${DateTime.now().millisecondsSinceEpoch}',
+    );
+  } catch (e) {
+    debugPrint('Gagal simpan token: $e');
+  }
+  if (!mounted) return;
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => const MainShell()),
+  );
+}
 
   // Hilangkan error saat pengguna mulai mengetik lagi
   void _clearError() {
@@ -145,6 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
     ),
   );
 
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -264,6 +274,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
 
                     const SizedBox(height: 12),
+
+
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -271,7 +283,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const LupaPasswordScreen(),
+                              builder: (context) =>
+                                  const LupaPasswordScreen(),
                             ),
                           );
                         },
@@ -285,12 +298,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    
-                    const SizedBox(height: 8),
+
+                    const SizedBox(height: 20),
 
                     SizedBox(
                       width: double.infinity,
-                      height: 50,
+                      height: 48,
                       child: ElevatedButton(
                         onPressed: _login,
                         style: ElevatedButton.styleFrom(
@@ -298,51 +311,18 @@ class _LoginScreenState extends State<LoginScreen> {
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         child: const Text(
-                          'Login',
+                          'Masuk',
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                     ),
-
-                    if (!_hasError) ...[
-                      const SizedBox(height: 20),
-                      Center(
-                        child: RichText(
-                          text: TextSpan(
-                            text: 'Belum punya akun? ',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF64748B),
-                            ),
-                            children: [
-                              TextSpan(
-                                text: 'Daftar',
-                                style: const TextStyle(
-                                  color: _link,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const RegisterScreen(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),

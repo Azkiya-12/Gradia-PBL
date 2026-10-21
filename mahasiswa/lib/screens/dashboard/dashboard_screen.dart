@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../notifikasi/notifikasi_screen.dart';
 import '../akademik/tugas_screen.dart';
-import '../akun/akun_screen.dart';
+import '../auth/akun_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final ValueChanged<int>? onTabChange;
