@@ -37,7 +37,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final id = _idController.text.trim();
   final pass = _passController.text;
 
-  // Mode demo: isian apa saja diterima, asal tidak kosong
   final isValid = id.isNotEmpty && pass.isNotEmpty;
 
   if (!isValid) {
@@ -60,7 +59,6 @@ class _LoginScreenState extends State<LoginScreen> {
   );
 }
 
-  // Hilangkan error saat pengguna mulai mengetik lagi
   void _clearError() {
     if (_hasError) setState(() => _hasError = false);
   }
@@ -94,7 +92,6 @@ class _LoginScreenState extends State<LoginScreen> {
     ),
   );
 
-  // Logo "G" saja (dipakai saat error)
   Widget _logoG() => Container(
     width: 64,
     height: 64,

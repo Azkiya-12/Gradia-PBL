@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../notifikasi/notifikasi_screen.dart';
 import '../akademik/tugas_screen.dart';
 import '../auth/akun_screen.dart';
+import 'absensi_card.dart';
+import '../akademik/absensi_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final ValueChanged<int>? onTabChange;
@@ -155,6 +157,25 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ],
               ),
+
+                            const SizedBox(height: 24),
+
+              _SectionHeader(
+                title: 'Absensi',
+                action: 'Lihat semua',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AbsensiScreen(),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 12),
+
+              const AbsensiCard(),
 
               const SizedBox(height: 24),
 

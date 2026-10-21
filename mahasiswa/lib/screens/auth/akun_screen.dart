@@ -50,7 +50,6 @@ class _AkunScreenState extends State<AkunScreen> {
     });
   }
 
-  // Simpan otomatis setiap tombol geser diubah
   Future<void> _simpanPengaturan() {
     return PengaturanStorage.simpan(
       nilai: _notifikasiNilai,
@@ -60,7 +59,6 @@ class _AkunScreenState extends State<AkunScreen> {
     );
   }
 
-  // Keluar: hapus token dari secure storage, lalu kembali ke Login
   Future<void> _keluar() async {
     await RahasiaStorage.hapusToken();
     if (!mounted) return;
