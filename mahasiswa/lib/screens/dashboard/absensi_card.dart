@@ -118,6 +118,7 @@ class _SesiKartu extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -236,12 +237,15 @@ class _AbsensiPilihanState extends State<_AbsensiPilihan> {
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _SesiKartu(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 390),
+                child: _SesiKartu(
                 mataKuliah: widget.mataKuliah,
                 info: widget.info,
                 batas: widget.batas,
                 chipTeks: 'Sedang berlangsung',
-                aksi: Column(children: opsi),
+                aksi: Column(mainAxisSize: MainAxisSize.min, children: opsi),
+              ),
               ),
             ),
           ),
