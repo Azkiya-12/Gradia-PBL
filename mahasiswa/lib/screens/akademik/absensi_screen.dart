@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Halaman rekap kehadiran. Kartu "Absen sekarang" hanya ada di Dashboard.
 class AbsensiScreen extends StatelessWidget {
   const AbsensiScreen({super.key});
 
@@ -24,7 +25,7 @@ class AbsensiScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -37,11 +38,11 @@ class AbsensiScreen extends StatelessWidget {
                     icon: const Icon(Icons.chevron_left,
                         size: 28, color: _dark),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   const Text(
                     'Absensi',
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: _dark,
                     ),
@@ -55,21 +56,21 @@ class AbsensiScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _ringkasan(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 6),
                       const Text(
                         'Per mata kuliah',
                         style: TextStyle(
-                          fontSize: 17,
+                          fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: _dark,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 4),
                       Container(
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(18),
                           border: Border.all(color: _border),
                         ),
                         child: Column(
@@ -96,22 +97,22 @@ class AbsensiScreen extends StatelessWidget {
   Widget _ringkasan() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _border),
       ),
       child: Column(
         children: [
-          Row(
-            children: const [
+          const Row(
+            children: [
               Expanded(
                 child: Text(
                   'Kehadiran semester ini',
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
                     color: _grey,
                   ),
                 ),
@@ -119,14 +120,15 @@ class AbsensiScreen extends StatelessWidget {
               Text(
                 '92%',
                 style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
                   color: _primary,
+                  height: 1.15,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 4),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: const LinearProgressIndicator(
@@ -136,27 +138,27 @@ class AbsensiScreen extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation(_primary),
             ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: const [
+          const SizedBox(height: 11),
+          const Row(
+            children: [
               Expanded(
-                child: _Kotak('46', 'Hadir', Color(0xFF059669),
-                    Color(0xFFECFDF5)),
+                child: _Kotak(
+                    '46', 'Hadir', Color(0xFF059669), Color(0xFFECFDF5)),
               ),
               SizedBox(width: 8),
               Expanded(
-                child: _Kotak('2', 'Izin', Color(0xFF4F46E5),
-                    Color(0xFFEEF2FF)),
+                child: _Kotak(
+                    '2', 'Izin', Color(0xFF4F46E5), Color(0xFFEEF2FF)),
               ),
               SizedBox(width: 8),
               Expanded(
-                child: _Kotak('1', 'Sakit', Color(0xFFB45309),
-                    Color(0xFFFFFBEB)),
+                child: _Kotak(
+                    '1', 'Sakit', Color(0xFFB45309), Color(0xFFFEF3C7)),
               ),
               SizedBox(width: 8),
               Expanded(
-                child: _Kotak('1', 'Alpa', Color(0xFFDC2626),
-                    Color(0xFFFEF2F2)),
+                child: _Kotak(
+                    '1', 'Alpa', Color(0xFFDC2626), Color(0xFFFEE2E2)),
               ),
             ],
           ),
@@ -213,10 +215,10 @@ class _Kotak extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
@@ -224,17 +226,18 @@ class _Kotak extends StatelessWidget {
             angka,
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               color: fg,
+              height: 1.1,
             ),
           ),
-          const SizedBox(height: 2),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
               color: fg,
+              height: 1.1,
             ),
           ),
         ],
@@ -267,7 +270,7 @@ class _BarisMatkulState extends State<_BarisMatkul> {
       child: InkWell(
         onTap: () => setState(() => _buka = !_buka),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -281,7 +284,7 @@ class _BarisMatkulState extends State<_BarisMatkul> {
                         Text(
                           mk.nama,
                           style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF0F172A),
                           ),
@@ -289,16 +292,16 @@ class _BarisMatkulState extends State<_BarisMatkul> {
                         if (mk.dibuka)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: const Color(0xFFECFDF5),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(999),
                             ),
                             child: const Text(
                               'Dibuka',
                               style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
                                 color: Color(0xFF059669),
                               ),
                             ),
@@ -309,8 +312,8 @@ class _BarisMatkulState extends State<_BarisMatkul> {
                   Text(
                     '${mk.persen}%',
                     style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
                       color: Color(0xFF4F46E5),
                     ),
                   ),
@@ -324,11 +327,10 @@ class _BarisMatkulState extends State<_BarisMatkul> {
                   ),
                 ],
               ),
-              const SizedBox(height: 2),
               Text(
                 mk.keterangan,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: Color(0xFF64748B),
                 ),
               ),
@@ -338,7 +340,8 @@ class _BarisMatkulState extends State<_BarisMatkul> {
                 child: LinearProgressIndicator(
                   value: mk.hadir / mk.total,
                   minHeight: 6,
-                  backgroundColor: const Color(0xFFE2E8F0),
+                  backgroundColor:
+                      mk.dibuka ? Colors.white : const Color(0xFFE2E8F0),
                   valueColor:
                       const AlwaysStoppedAnimation(Color(0xFF4F46E5)),
                 ),
@@ -354,9 +357,9 @@ class _BarisMatkulState extends State<_BarisMatkul> {
                     _chip('Izin ${mk.izin}', const Color(0xFF4F46E5),
                         const Color(0xFFEEF2FF)),
                     _chip('Sakit ${mk.sakit}', const Color(0xFFB45309),
-                        const Color(0xFFFFFBEB)),
+                        const Color(0xFFFEF3C7)),
                     _chip('Alpa ${mk.alpa}', const Color(0xFFDC2626),
-                        const Color(0xFFFEF2F2)),
+                        const Color(0xFFFEE2E2)),
                   ],
                 ),
               ],
@@ -377,8 +380,8 @@ class _BarisMatkulState extends State<_BarisMatkul> {
       child: Text(
         teks,
         style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
           color: fg,
         ),
       ),

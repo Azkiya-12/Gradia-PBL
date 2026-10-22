@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../notifikasi/notifikasi_screen.dart';
 import '../akademik/tugas_screen.dart';
 import '../auth/akun_screen.dart';
-import 'absensi_card.dart';
-import '../akademik/absensi_screen.dart';
+import 'absensi_card.dart' show AbsensiCard;
+import '../akademik/absensi_screen.dart' show AbsensiScreen;
 
 class DashboardScreen extends StatelessWidget {
   final ValueChanged<int>? onTabChange;
@@ -16,19 +16,21 @@ class DashboardScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 52,
+                    height: 52,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF6366F1), Color(0xFFA78BFA)],
                       ),
                     ),
                     child: const Center(
@@ -36,7 +38,7 @@ class DashboardScreen extends StatelessWidget {
                         'SP',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 13,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -52,17 +54,17 @@ class DashboardScreen extends StatelessWidget {
                         Text(
                           'Halo,',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 13,
                             color: Color(0xFF64748B),
                           ),
                         ),
-                        SizedBox(height: 2),
                         Text(
                           'Sinta',
                           style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
                             color: Color(0xFF0F172A),
+                            height: 1.15,
                           ),
                         ),
                       ],
@@ -70,6 +72,8 @@ class DashboardScreen extends StatelessWidget {
                   ),
 
                   IconButton(
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -80,24 +84,24 @@ class DashboardScreen extends StatelessWidget {
                     },
                     icon: const Icon(
                       Icons.notifications_none_rounded,
-                      size: 25,
+                      size: 26,
                       color: Color(0xFF0F172A),
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 17),
 
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(18, 20, 18, 16),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
                   gradient: const LinearGradient(
                     colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
                     begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
+                    end: Alignment.bottomRight,
                   ),
                 ),
                 child: const Column(
@@ -107,25 +111,25 @@ class DashboardScreen extends StatelessWidget {
                       'AI Insight',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 14,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: 4),
                     Text(
                       'Performa akademikmu meningkat dibandingkan semester sebelumnya.',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 13,
-                        height: 1.5,
+                        fontSize: 15,
+                        height: 1.4,
                       ),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 6),
                     Text(
                       'Lihat selengkapnya',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -143,22 +147,20 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              Row(
+              const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: _StatCard(label: 'IPK semester', value: '3.7'),
                   ),
-
-                  const SizedBox(width: 12),
-
+                  SizedBox(width: 12),
                   Expanded(
                     child: _StatCard(label: 'Kehadiran', value: '92%'),
                   ),
                 ],
               ),
 
-                            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               _SectionHeader(
                 title: 'Absensi',
@@ -182,7 +184,7 @@ class DashboardScreen extends StatelessWidget {
               const Text(
                 'Status tugas',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF0F172A),
                 ),
@@ -190,7 +192,7 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              Row(
+              const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
@@ -200,9 +202,7 @@ class DashboardScreen extends StatelessWidget {
                       valueColor: Color(0xFFDC2626),
                     ),
                   ),
-
-                  const SizedBox(width: 10),
-
+                  SizedBox(width: 10),
                   Expanded(
                     child: _TaskStatusCard(
                       label: 'Mendatang',
@@ -210,9 +210,7 @@ class DashboardScreen extends StatelessWidget {
                       valueColor: Color(0xFF4F46E5),
                     ),
                   ),
-
-                  const SizedBox(width: 10),
-
+                  SizedBox(width: 10),
                   Expanded(
                     child: _TaskStatusCard(
                       label: 'Terkumpul',
@@ -249,29 +247,27 @@ class DashboardScreen extends StatelessWidget {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                child: Column(
+                child: const Column(
                   children: [
                     _AssignmentItem(
                       title: 'Usability Test Report',
                       subtitle: 'Desain User Interface dan User Experience',
                       deadline: 'Terlambat 2 hari',
                       status: 'Terlewat',
-                      statusColor: const Color(0xFFDC2626),
-                      statusBackground: const Color(0xFFFEF2F2),
+                      statusColor: Color(0xFFDC2626),
+                      statusBackground: Color(0xFFFEE2E2),
                     ),
-
-                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
-
+                    Divider(height: 1, color: Color(0xFFE2E8F0)),
                     _AssignmentItem(
                       title: 'Tugas Aplikasi Mobile',
                       subtitle: 'Pemrograman Mobile',
                       deadline: 'Besok, 23:59',
                       status: 'Segera',
-                      statusColor: const Color(0xFFB45309),
-                      statusBackground: const Color(0xFFFFFBEB),
+                      statusColor: Color(0xFFB45309),
+                      statusBackground: Color(0xFFFEF3C7),
                     ),
                   ],
                 ),
@@ -303,7 +299,7 @@ class _SectionHeader extends StatelessWidget {
           child: Text(
             title,
             style: const TextStyle(
-              fontSize: 17,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
               color: Color(0xFF0F172A),
             ),
@@ -314,7 +310,7 @@ class _SectionHeader extends StatelessWidget {
           child: Text(
             action,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: Color(0xFF4F46E5),
             ),
@@ -334,10 +330,10 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
@@ -345,17 +341,18 @@ class _StatCard extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
 
           Text(
             value,
             style: const TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.w800,
+              fontSize: 36,
+              fontWeight: FontWeight.w700,
               color: Color(0xFF0F172A),
+              height: 1.15,
             ),
           ),
         ],
@@ -389,17 +386,18 @@ class _TaskStatusCard extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
           ),
 
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
 
           Text(
             value,
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
               color: valueColor,
+              height: 1.15,
             ),
           ),
         ],
@@ -428,9 +426,9 @@ class _AssignmentItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Column(
@@ -439,28 +437,20 @@ class _AssignmentItem extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF0F172A),
                   ),
                 ),
 
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
 
+                // Di desain subtitle dan tenggat satu teks yang mengalir
                 Text(
-                  subtitle,
+                  '$subtitle · $deadline',
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-
-                const SizedBox(height: 4),
-
-                Text(
-                  '• $deadline',
-                  style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
+                    height: 1.35,
                     color: Color(0xFF64748B),
                   ),
                 ),
@@ -471,7 +461,7 @@ class _AssignmentItem extends StatelessWidget {
           const SizedBox(width: 8),
 
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: statusBackground,
               borderRadius: BorderRadius.circular(999),
@@ -479,8 +469,8 @@ class _AssignmentItem extends StatelessWidget {
             child: Text(
               status,
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
                 color: statusColor,
               ),
             ),
