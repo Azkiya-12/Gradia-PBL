@@ -10,17 +10,16 @@ class TugasScreen extends StatefulWidget {
 }
 
 class _TugasScreenState extends State<TugasScreen> {
-  static const _primary = Color(0xFF4F46E5);
   static const _dark = Color(0xFF0F172A);
   static const _grey = Color(0xFF64748B);
   static const _border = Color(0xFFE2E8F0);
 
   static const bool _tampilkanKosong = false;
 
-  String _selectedFilter = 'Semua';
+  // Tab "Semua" sudah dihapus. Tab awal: To-Do.
+  String _selectedFilter = 'To-Do';
 
   static const List<String> _filters = [
-    'Semua',
     'To-Do',
     'Terkumpul',
     'Terlewat',
@@ -61,7 +60,6 @@ class _TugasScreenState extends State<TugasScreen> {
 
   List<_Tugas> get _filtered {
     final all = _tampilkanKosong ? const <_Tugas>[] : _semuaTugas;
-    if (_selectedFilter == 'Semua') return all;
     return all.where((t) => t.status == _selectedFilter).toList();
   }
 
@@ -134,7 +132,17 @@ class _TugasScreenState extends State<TugasScreen> {
 
               Expanded(
                 child: items.isEmpty
-                    ? _TugasKosong(onLihatEvaluasiAI: widget.onLihatEvaluasiAI)
+                    // "Semua tugas beres" hanya cocok untuk tab To-Do
+                    ? (_selectedFilter == 'To-Do'
+                        ? _TugasKosong(
+                            onLihatEvaluasiAI: widget.onLihatEvaluasiAI,
+                          )
+                        : const Center(
+                            child: Text(
+                              'Belum ada tugas di kategori ini.',
+                              style: TextStyle(fontSize: 13, color: _grey),
+                            ),
+                          ))
                     : SingleChildScrollView(
                         child: Container(
                           width: double.infinity,
@@ -269,13 +277,12 @@ class _FilterTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      behavior: HitTestBehavior.opaque, // <-- tambahan 1
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
         height: 36,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          // <-- tambahan 2: ganti Colors.transparent
           color: active ? Colors.white : const Color(0x00FFFFFF),
           borderRadius: BorderRadius.circular(10),
           boxShadow: active
