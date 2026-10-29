@@ -1,9 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'ajukan_izin_screen.dart';
 
 /// Kartu "Absensi" di Dashboard.
 /// Tombol "Absen sekarang" membuka pilihan (Hadir / Izin / Sakit,
 /// dan untuk Hadir: Luring / Daring) di atas latar yang diburamkan.
+/// Pilihan "Izin" membuka form Ajukan izin dulu; status baru tercatat
+/// setelah form berhasil dikirim.
 class AbsensiCard extends StatefulWidget {
   const AbsensiCard({super.key});
 
@@ -21,7 +24,7 @@ class _AbsensiCardState extends State<AbsensiCard> {
   String? _hasil;
 
   Future<void> _absen() async {
-    final hasil = await showGeneralDialog<String>(
+    final pilihan = await showGeneralDialog<String>(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Tutup',
@@ -34,10 +37,25 @@ class _AbsensiCardState extends State<AbsensiCard> {
       ),
     );
 
-    if (hasil == null || !mounted) return;
-    setState(() => _hasil = hasil);
+    if (pilihan == null || !mounted) return;
+
+    // Izin harus lewat form dulu. Status baru tercatat kalau form terkirim.
+    if (pilihan == 'Izin') {
+      final terkirim = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const AjukanIzinScreen(
+            namaMatkul: _mataKuliah,
+            ruangJam: _info,
+          ),
+        ),
+      );
+      if (terkirim != true || !mounted) return;
+    }
+
+    setState(() => _hasil = pilihan);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Absensi tercatat: $hasil')),
+      SnackBar(content: Text('Absensi tercatat: $pilihan')),
     );
   }
 
@@ -240,12 +258,15 @@ class _AbsensiPilihanState extends State<_AbsensiPilihan> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 390),
                 child: _SesiKartu(
-                mataKuliah: widget.mataKuliah,
-                info: widget.info,
-                batas: widget.batas,
-                chipTeks: 'Sedang berlangsung',
-                aksi: Column(mainAxisSize: MainAxisSize.min, children: opsi),
-              ),
+                  mataKuliah: widget.mataKuliah,
+                  info: widget.info,
+                  batas: widget.batas,
+                  chipTeks: 'Sedang berlangsung',
+                  aksi: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: opsi,
+                  ),
+                ),
               ),
             ),
           ),
