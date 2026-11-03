@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../services/pengaturan_storage.dart';
-import '../../services/rahasia_storage.dart';
+import 'package:mahasiswa/services/pengaturan_storage.dart';
+import 'package:mahasiswa/services/rahasia_storage.dart';
 import 'login_screen.dart';
 
+/// Halaman Akun: profil, data diri, pengaturan notifikasi, dan tombol Keluar.
 class AkunScreen extends StatefulWidget {
   const AkunScreen({super.key});
 
@@ -12,9 +13,9 @@ class AkunScreen extends StatefulWidget {
 
 class _AkunScreenState extends State<AkunScreen> {
   static const _dark = Color(0xFF0F172A);
-  static const _grey = Color(0xFF64748B);
   static const _border = Color(0xFFE2E8F0);
 
+  // Data contoh. Nanti diganti dengan data dari backend.
   static const _inisial = 'SP';
   static const _email = 'sintaanabella@kampus';
   static const _nim = '251234567899';
@@ -28,10 +29,11 @@ class _AkunScreenState extends State<AkunScreen> {
     ['Jenjang dan Program Studi', 'D3 – Teknologi Informasi'],
   ];
 
+  // Pengaturan notifikasi (dibaca dari shared_preferences)
   bool _notifikasiNilai = true;
   bool _pengumumanKampus = true;
   bool _reminderTugas = true;
-  bool _updateSistem = false; 
+  bool _updateSistem = false; // tidak tampil di desain, tetap disimpan
 
   @override
   void initState() {
@@ -50,6 +52,7 @@ class _AkunScreenState extends State<AkunScreen> {
     });
   }
 
+  // Simpan otomatis setiap tombol geser diubah
   Future<void> _simpanPengaturan() {
     return PengaturanStorage.simpan(
       nilai: _notifikasiNilai,
@@ -59,6 +62,7 @@ class _AkunScreenState extends State<AkunScreen> {
     );
   }
 
+  // Keluar: hapus token dari secure storage, lalu kembali ke Login
   Future<void> _keluar() async {
     await RahasiaStorage.hapusToken();
     if (!mounted) return;
@@ -331,6 +335,17 @@ class _SwitchRow extends StatelessWidget {
               ],
             ),
           ),
+          Text(
+            value ? 'Aktif' : 'Nonaktif',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: value ? FontWeight.w700 : FontWeight.w600,
+              color: value
+                  ? const Color(0xFF059669)
+                  : const Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(width: 10),
           Switch(
             value: value,
             onChanged: onChanged,
