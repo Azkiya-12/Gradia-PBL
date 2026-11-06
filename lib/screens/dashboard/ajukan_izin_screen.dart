@@ -1,4 +1,3 @@
-import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -81,13 +80,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     _setFile(f.name, size);
   }
 
-  Future<void> _onDrop(DropDoneDetails detail) async {
-    setState(() => _dragging = false);
-    if (detail.files.isEmpty) return;
-    final f = detail.files.first;
-    _setFile(f.name, await f.length());
-  }
-
+  // Hapus referensi _onDrop karena desktop_drop dilepas
   void _hapusFile() => setState(() {
         _fileName = null;
         _fileSize = null;
@@ -230,37 +223,32 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     );
   }
 
-  /// Kotak upload: bisa di-tap (file picker) atau drag & drop (web/desktop).
+  /// Kotak upload: bisa di-tap (file picker).
   Widget _buildUploadBox() {
-    return DropTarget(
-      onDragEntered: (_) => setState(() => _dragging = true),
-      onDragExited: (_) => setState(() => _dragging = false),
-      onDragDone: _onDrop,
-      child: InkWell(
-        onTap: _pilihFile,
-        borderRadius: BorderRadius.circular(16),
-        child: CustomPaint(
-          painter: _DashedBorderPainter(
-            color: _dragging ? IzinColors.primary : IzinColors.primaryBorder,
-            radius: 16,
+    return InkWell(
+      onTap: _pilihFile,
+      borderRadius: BorderRadius.circular(16),
+      child: CustomPaint(
+        painter: _DashedBorderPainter(
+          color: _dragging ? IzinColors.primary : IzinColors.primaryBorder,
+          radius: 16,
+        ),
+        child: Container(
+          height: 90,
+          width: double.infinity,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: _dragging
+                ? IzinColors.primary.withOpacity(0.12)
+                : IzinColors.primarySoft,
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Container(
-            height: 90,
-            width: double.infinity,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: _dragging
-                  ? IzinColors.primary.withOpacity(0.12)
-                  : IzinColors.primarySoft,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              _dragging ? 'Lepaskan file di sini' : 'Pilih file',
-              style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: IzinColors.primary),
-            ),
+          child: Text(
+            _dragging ? 'Lepaskan file di sini' : 'Pilih file',
+            style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: IzinColors.primary),
           ),
         ),
       ),
