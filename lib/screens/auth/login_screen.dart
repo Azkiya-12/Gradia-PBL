@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../dashboard/main_shell.dart';
 import '../auth/lupa_password_screen.dart';
-import '../../services/rahasia_storage.dart';
+import '../../services/auth_service.dart';
+import '../../services/api_client.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,14 +18,12 @@ class _LoginScreenState extends State<LoginScreen> {
   static const _errorRed = Color(0xFFDC2626);
   static const _errorBg = Color(0xFFFEF2F2);
 
-  // AKUN CONTOH untuk uji coba. Ganti dengan pengecekan ke server/database.
-  static const _dummyId = 'azkiya@kampus.ac.id';
-  static const _dummyPass = 'password123';
-
   final _idController = TextEditingController();
   final _passController = TextEditingController();
   bool _obscurePassword = true;
   bool _hasError = false;
+  String _errorMessage = 'Email/NIM atau password belum cocok.';
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -33,31 +32,49 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
- Future<void> _login() async {
-  final id = _idController.text.trim();
-  final pass = _passController.text;
+  Future<void> _login() async {
+    final id = _idController.text.trim();
+    final pass = _passController.text;
 
-  final isValid = id.isNotEmpty && pass.isNotEmpty;
+    if (id.isEmpty || pass.isEmpty) {
+      setState(() {
+        _hasError = true;
+        _errorMessage = 'NIM/Email dan kata sandi wajib diisi.';
+      });
+      return;
+    }
 
-  if (!isValid) {
-    setState(() => _hasError = true);
-    return;
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    try {
+      await AuthService.login(identifier: id, password: pass);
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainShell()),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _hasError = true;
+        _errorMessage = e.message;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _hasError = true;
+        _errorMessage = 'Terjadi kesalahan sistem saat mencoba login: $e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
-
-  try {
-    await RahasiaStorage.simpanToken(
-      'token-${DateTime.now().millisecondsSinceEpoch}',
-    );
-  } catch (e) {
-    debugPrint('Gagal simpan token: $e');
-  }
-  if (!mounted) return;
-
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => const MainShell()),
-  );
-}
 
   void _clearError() {
     if (_hasError) setState(() => _hasError = false);
@@ -65,9 +82,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   InputDecoration _inputDecoration(String hint, {Widget? suffixIcon}) {
     OutlineInputBorder outline(Color color) => OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: color),
-    );
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: color),
+        );
 
     final normalBorder = _hasError ? _errorRed : _border;
 
@@ -84,74 +101,75 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _label(String text) => Text(
-    text,
-    style: const TextStyle(
-      fontSize: 13,
-      fontWeight: FontWeight.w600,
-      color: Color(0xFF0F172A),
-    ),
-  );
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF0F172A),
+        ),
+      );
 
   Widget _logoG() => Container(
-    width: 64,
-    height: 64,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(20),
-      gradient: const LinearGradient(
-        colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
-      ),
-    ),
-    child: const Center(
-      child: Text(
-        'G',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 30,
-          fontWeight: FontWeight.w800,
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(
+            colors: [_primary, Color(0xFF818CF8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-      ),
-    ),
-  );
+        child: const Center(
+          child: Text(
+            'G',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      );
 
   // Kotak peringatan merah
   Widget _errorBanner() => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: _errorBg,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFFFECACA)),
-    ),
-    child: const Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(Icons.error_outline, size: 18, color: Color(0xFFB91C1C)),
-        SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Email/NIM atau password belum cocok.',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF991B1B),
-                ),
-              ),
-              SizedBox(height: 2),
-              Text(
-                'Periksa kembali, atau atur ulang password jika lupa.',
-                style: TextStyle(fontSize: 12, color: Color(0xFFB91C1C)),
-              ),
-            ],
-          ),
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: _errorBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFFECACA)),
         ),
-      ],
-    ),
-  );
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.error_outline, size: 18, color: Color(0xFFB91C1C)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _errorMessage,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF991B1B),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Periksa kembali, atau hubungi Bagian Akademik Kampus.',
+                    style: TextStyle(fontSize: 12, color: Color(0xFFB91C1C)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
 
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -163,10 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Header
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 color: Colors.white,
                 child: const Text(
                   'Gradia',
@@ -236,6 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: _idController,
+                      enabled: !_isLoading,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       onChanged: (_) => _clearError(),
@@ -248,6 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: _passController,
+                      enabled: !_isLoading,
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
                       onChanged: (_) => _clearError(),
@@ -272,7 +289,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 12),
 
-
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -280,8 +296,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const LupaPasswordScreen(),
+                              builder: (context) => const LupaPasswordScreen(),
                             ),
                           );
                         },
@@ -302,7 +317,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        onPressed: _login,
+                        onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _primary,
                           foregroundColor: Colors.white,
@@ -311,13 +326,22 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          'Masuk',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Masuk',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                       ),
                     ),
                   ],

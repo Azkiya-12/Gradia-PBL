@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mahasiswa/services/pengaturan_storage.dart';
-import 'package:mahasiswa/services/rahasia_storage.dart';
+import 'package:mahasiswa/services/auth_service.dart';
+import 'package:mahasiswa/models/user_model.dart';
 import 'login_screen.dart';
 
 /// Halaman Akun: profil, data diri, pengaturan notifikasi, dan tombol Keluar.
@@ -15,30 +16,37 @@ class _AkunScreenState extends State<AkunScreen> {
   static const _dark = Color(0xFF0F172A);
   static const _border = Color(0xFFE2E8F0);
 
-  // Data contoh. Nanti diganti dengan data dari backend.
-  static const _inisial = 'SP';
-  static const _email = 'sintaanabella@kampus';
-  static const _nim = '251234567899';
-  static const _prodiSingkat = 'Teknologi Informasi';
-  static const List<List<String>> _dataDiri = [
-    ['Nama lengkap', 'Sinta Putri Anabella'],
-    ['Angkatan', '2025'],
-    ['Status Akademik', 'Aktif'],
-    ['Fakultas', 'Vokasi'],
-    ['Jurusan', 'Non jurusan'],
-    ['Jenjang dan Program Studi', 'D3 – Teknologi Informasi'],
-  ];
+  UserModel? _user;
+  bool _isLoadingUser = true;
 
   // Pengaturan notifikasi (dibaca dari shared_preferences)
   bool _notifikasiNilai = true;
   bool _pengumumanKampus = true;
   bool _reminderTugas = true;
-  bool _updateSistem = false; // tidak tampil di desain, tetap disimpan
+  bool _updateSistem = false;
 
   @override
   void initState() {
     super.initState();
     _muatPengaturan();
+    _muatUserData();
+  }
+
+  Future<void> _muatUserData() async {
+    final cached = await AuthService.getUser();
+    if (mounted) {
+      setState(() {
+        _user = cached;
+        _isLoadingUser = false;
+      });
+    }
+
+    try {
+      final fresh = await AuthService.fetchProfile();
+      if (mounted) {
+        setState(() => _user = fresh);
+      }
+    } catch (_) {}
   }
 
   Future<void> _muatPengaturan() async {
@@ -64,7 +72,31 @@ class _AkunScreenState extends State<AkunScreen> {
 
   // Keluar: hapus token dari secure storage, lalu kembali ke Login
   Future<void> _keluar() async {
-    await RahasiaStorage.hapusToken();
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Keluar'),
+        content: const Text('Apakah Anda yakin ingin keluar dari akun ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    await AuthService.logout();
     if (!mounted) return;
     Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -74,6 +106,21 @@ class _AkunScreenState extends State<AkunScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final name = _user?.name.isNotEmpty == true ? _user!.name : 'Mahasiswa';
+    final email = _user?.email.isNotEmpty == true ? _user!.email : '-';
+    final nim = _user?.nim.isNotEmpty == true ? _user!.nim : '-';
+    final prodi = _user?.prodi.isNotEmpty == true ? _user!.prodi : 'Teknologi Informasi';
+    final status = _user?.status.isNotEmpty == true ? _user!.status : 'Aktif';
+    final inisial = _user?.inisial ?? 'M';
+
+    final dataDiri = [
+      ['Nama lengkap', name],
+      ['NIM', nim],
+      ['Status Akademik', status],
+      ['Program Studi', prodi],
+      ['Email Resmi', email],
+    ];
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -120,9 +167,9 @@ class _AkunScreenState extends State<AkunScreen> {
                           shape: BoxShape.circle,
                           color: Color(0x40FFFFFF),
                         ),
-                        child: const Text(
-                          _inisial,
-                          style: TextStyle(
+                        child: Text(
+                          inisial,
+                          style: const TextStyle(
                             fontSize: 34,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -130,18 +177,20 @@ class _AkunScreenState extends State<AkunScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        _email,
-                        style: TextStyle(
+                      Text(
+                        name,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        '$_nim · $_prodiSingkat',
-                        style: TextStyle(
+                      Text(
+                        '$nim · $prodi',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xE6FFFFFF),
                         ),
@@ -151,10 +200,10 @@ class _AkunScreenState extends State<AkunScreen> {
                 ),
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
 
               // Data diri
-              for (final item in _dataDiri) ...[
+              for (final item in dataDiri) ...[
                 _InfoRow(label: item[0], value: item[1]),
                 const Divider(height: 1, color: _border),
               ],
@@ -271,20 +320,31 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF475569)),
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF0F172A),
+              ),
             ),
           ),
         ],

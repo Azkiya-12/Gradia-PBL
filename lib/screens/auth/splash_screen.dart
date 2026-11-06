@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import '../dashboard/main_shell.dart';
+import '../../services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,14 +16,26 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Setelah 2 detik, pindah ke halaman Login
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    // Delay minimum 1.5 detik untuk tampilan branding splash screen
+    await Future.delayed(const Duration(milliseconds: 1500));
+    final loggedIn = await AuthService.isLoggedIn();
+
+    if (!mounted) return;
+    if (loggedIn) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainShell()),
+      );
+    } else {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
-    });
+    }
   }
 
   @override

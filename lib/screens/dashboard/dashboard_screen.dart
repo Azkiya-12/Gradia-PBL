@@ -1,17 +1,45 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
 import '../notifikasi/notifikasi_screen.dart';
 import '../akademik/tugas_screen.dart';
 import '../auth/akun_screen.dart';
 import 'absensi_card.dart' show AbsensiCard;
 import '../akademik/absensi_screen.dart' show AbsensiScreen;
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   final ValueChanged<int>? onTabChange;
 
   const DashboardScreen({super.key, this.onTabChange});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  UserModel? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final cached = await AuthService.getUser();
+    if (mounted) setState(() => _user = cached);
+
+    try {
+      final fresh = await AuthService.fetchProfile();
+      if (mounted) setState(() => _user = fresh);
+    } catch (_) {}
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final displayName = _user?.namaPanggilan ?? 'Sinta';
+    final inisial = _user?.inisial ?? 'SP';
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -33,10 +61,10 @@ class DashboardScreen extends StatelessWidget {
                         colors: [Color(0xFF6366F1), Color(0xFFA78BFA)],
                       ),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'SP',
-                        style: TextStyle(
+                        inisial,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -47,11 +75,11 @@ class DashboardScreen extends StatelessWidget {
 
                   const SizedBox(width: 12),
 
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'Halo,',
                           style: TextStyle(
                             fontSize: 13,
@@ -59,8 +87,8 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Sinta',
-                          style: TextStyle(
+                          displayName,
+                          style: const TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF0F172A),
@@ -142,7 +170,7 @@ class DashboardScreen extends StatelessWidget {
               _SectionHeader(
                 title: 'Ringkasan nilai',
                 action: 'Lihat semua',
-                onTap: () => onTabChange?.call(1),
+                onTap: () => widget.onTabChange?.call(1),
               ),
 
               const SizedBox(height: 12),
@@ -233,7 +261,7 @@ class DashboardScreen extends StatelessWidget {
                       builder: (context) => TugasScreen(
                         onLihatEvaluasiAI: () {
                           Navigator.pop(context);
-                          onTabChange?.call(2);
+                          widget.onTabChange?.call(2);
                         },
                       ),
                     ),
