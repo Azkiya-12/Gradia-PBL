@@ -3,7 +3,6 @@ import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
 import '../notifikasi/notifikasi_screen.dart';
 import '../akademik/tugas_screen.dart';
-import '../auth/akun_screen.dart';
 import 'absensi_card.dart' show AbsensiCard;
 import '../akademik/absensi_screen.dart' show AbsensiScreen;
 
@@ -505,41 +504,6 @@ class _AssignmentItem extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _BottomNavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-
-  const _BottomNavItem({
-    required this.icon,
-    required this.label,
-    this.active = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = active ? const Color(0xFF4F46E5) : const Color(0xFF64748B);
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: 22, color: color),
-
-        const SizedBox(height: 3),
-
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: color,
-          ),
-        ),
-      ],
     );
   }
 }

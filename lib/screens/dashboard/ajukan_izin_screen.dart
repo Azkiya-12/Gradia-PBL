@@ -34,7 +34,6 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
 
   String? _fileName;
   int? _fileSize;
-  bool _dragging = false;
 
   @override
   void dispose() {
@@ -71,11 +70,12 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
   }
 
   Future<void> _pilihFile() async {
-    final f = await FilePicker.pickFile(
+    final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: _allowedExt,
     );
-    if (f == null) return; // pengguna batal
+    if (files.isEmpty) return; // pengguna batal
+    final f = files.first;
     final size = f.lengthSync() ?? await f.length() ?? 0;
     _setFile(f.name, size);
   }
@@ -230,7 +230,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
       borderRadius: BorderRadius.circular(16),
       child: CustomPaint(
         painter: _DashedBorderPainter(
-          color: _dragging ? IzinColors.primary : IzinColors.primaryBorder,
+          color: IzinColors.primaryBorder,
           radius: 16,
         ),
         child: Container(
@@ -238,13 +238,11 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
           width: double.infinity,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: _dragging
-                ? IzinColors.primary.withOpacity(0.12)
-                : IzinColors.primarySoft,
+            color: IzinColors.primarySoft,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
-            _dragging ? 'Lepaskan file di sini' : 'Pilih file',
+            _fileName == null ? 'Pilih file' : 'Ganti file',
             style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,

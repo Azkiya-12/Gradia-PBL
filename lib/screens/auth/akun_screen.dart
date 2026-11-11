@@ -17,7 +17,6 @@ class _AkunScreenState extends State<AkunScreen> {
   static const _border = Color(0xFFE2E8F0);
 
   UserModel? _user;
-  bool _isLoadingUser = true;
 
   // Pengaturan notifikasi (dibaca dari shared_preferences)
   bool _notifikasiNilai = true;
@@ -37,7 +36,6 @@ class _AkunScreenState extends State<AkunScreen> {
     if (mounted) {
       setState(() {
         _user = cached;
-        _isLoadingUser = false;
       });
     }
 

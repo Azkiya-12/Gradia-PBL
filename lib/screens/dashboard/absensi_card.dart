@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'ajukan_izin_screen.dart';
+import 'ajukan_sakit_screen.dart';
 
 /// Kartu "Absensi" di Dashboard.
 /// Tombol "Absen sekarang" membuka pilihan (Hadir / Izin / Sakit,
@@ -45,6 +46,20 @@ class _AbsensiCardState extends State<AbsensiCard> {
         context,
         MaterialPageRoute(
           builder: (_) => const AjukanIzinScreen(
+            namaMatkul: _mataKuliah,
+            ruangJam: _info,
+          ),
+        ),
+      );
+      if (terkirim != true || !mounted) return;
+    }
+
+    // Sakit juga harus lewat form dulu beserta lampiran bukti.
+    if (pilihan == 'Sakit') {
+      final terkirim = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const AjukanSakitScreen(
             namaMatkul: _mataKuliah,
             ruangJam: _info,
           ),
