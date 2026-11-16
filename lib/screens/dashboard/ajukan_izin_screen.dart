@@ -1,5 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../../services/attendance_service.dart';
+import '../../services/api_client.dart';
 
 class IzinColors {
   static const primary = Color(0xFF5048E5);
@@ -15,10 +17,12 @@ class IzinColors {
 class AjukanIzinScreen extends StatefulWidget {
   const AjukanIzinScreen({
     super.key,
+    this.classId = 4,
     this.namaMatkul = 'Pemrograman Mobile',
     this.ruangJam = 'Ruang B.2.1 · 10:00–11:40',
   });
 
+  final int classId;
   final String namaMatkul;
   final String ruangJam;
 
@@ -34,6 +38,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
 
   String? _fileName;
   int? _fileSize;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -86,17 +91,36 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
         _fileSize = null;
       });
 
-  void _kirimIzin() {
+  Future<void> _kirimIzin() async {
+    if (_isSubmitting) return;
+
     if (_alasanController.text.trim().isEmpty) {
       _toast('Alasan izin wajib diisi.');
       return;
     }
     if (_fileName == null) {
-      _toast('Lampiran wajib diisi.');
+      _toast('Lampiran bukti wajib diunggah.');
       return;
     }
-    // TODO: kirim ke backend (alasan + file), baru tutup layar.
-    Navigator.pop(context, true);
+
+    setState(() => _isSubmitting = true);
+    try {
+      await AttendanceService.applyLeave(
+        classId: widget.classId,
+        status: 'izin',
+        reason: _alasanController.text.trim(),
+        attachmentUrl: _fileName,
+      );
+      if (!mounted) return;
+      _toast('Pengajuan izin berhasil dikirim.');
+      Navigator.pop(context, true);
+    } on ApiException catch (e) {
+      if (mounted) _toast(e.message);
+    } catch (e) {
+      if (mounted) _toast('Gagal mengirim pengajuan izin: $e');
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -146,17 +170,29 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _kirimIzin,
+                  onPressed: _isSubmitting ? null : _kirimIzin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: IzinColors.primary,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: IzinColors.primary.withValues(alpha: 0.6),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: const Text('Kirim izin',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          'Kirim izin',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700),
+                        ),
                 ),
               ),
             ],

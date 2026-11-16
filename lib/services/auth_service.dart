@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user_model.dart';
+import '../models/dashboard_model.dart';
 import 'api_client.dart';
 
 class AuthService {
@@ -94,6 +95,12 @@ class AuthService {
     if (token == null) throw ApiException('Sesi telah berakhir, silakan login kembali.');
 
     return await ApiClient.get('/student/dashboard', token: token);
+  }
+
+  /// Ambil data ringkasan dashboard dalam model strongly-typed
+  static Future<DashboardData> fetchDashboardData() async {
+    final map = await fetchDashboard();
+    return DashboardData.fromJson(map);
   }
 
   /// Logout mahasiswa

@@ -84,8 +84,12 @@ const Map<String, _PenilaianData> _dataPenilaian = {
 /// Screen 08 - Detail penilaian (data dummy)
 class DetailPenilaianScreen extends StatelessWidget {
   final String judul;
-  const DetailPenilaianScreen(
-      {super.key, this.judul = 'Kuis 1: Prinsip Desain'});
+  final int classId;
+  const DetailPenilaianScreen({
+    super.key,
+    this.judul = 'Kuis 1: Prinsip Desain',
+    this.classId = 5,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +130,8 @@ class DetailPenilaianScreen extends StatelessWidget {
           AppCard(
             child: Column(
               children: divide([
-                for (final b in d.butir) _SoalRow(b.title, b.nilai, note: b.note),
+                for (final b in d.butir)
+                  _SoalRow(b.title, b.nilai, note: b.note, classId: classId),
               ]),
             ),
           ),
@@ -147,7 +152,8 @@ class _SoalRow extends StatelessWidget {
   final String title;
   final String nilai;
   final String? note;
-  const _SoalRow(this.title, this.nilai, {this.note});
+  final int classId;
+  const _SoalRow(this.title, this.nilai, {this.note, this.classId = 5});
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +163,12 @@ class _SoalRow extends StatelessWidget {
       onTap: note == null
           ? null
           : () => push(
-              context, AjukanReviewScreen(soal: title, nilaiSekarang: nilai)),
+              context,
+              AjukanReviewScreen(
+                classId: classId,
+                soal: title,
+                nilaiSekarang: nilai,
+              )),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(

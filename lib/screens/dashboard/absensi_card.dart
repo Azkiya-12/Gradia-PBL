@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../models/attendance_model.dart';
+import '../../services/attendance_service.dart';
 import 'ajukan_izin_screen.dart';
 import 'ajukan_sakit_screen.dart';
 
@@ -9,20 +11,67 @@ import 'ajukan_sakit_screen.dart';
 /// Pilihan "Izin" membuka form Ajukan izin dulu; status baru tercatat
 /// setelah form berhasil dikirim.
 class AbsensiCard extends StatefulWidget {
-  const AbsensiCard({super.key});
+  final ActiveSession? activeSession;
+  final VoidCallback? onAttendanceChanged;
+
+  const AbsensiCard({
+    super.key,
+    this.activeSession,
+    this.onAttendanceChanged,
+  });
 
   @override
   State<AbsensiCard> createState() => _AbsensiCardState();
 }
 
 class _AbsensiCardState extends State<AbsensiCard> {
-  // Data contoh sesi yang sedang berlangsung. Nanti dari backend.
-  static const _mataKuliah = 'Pemrograman Mobile';
-  static const _info = 'Ruang B.2.1 · 10:00–11:40';
-  static const _batas = 'Ditutup 10:15';
+  // Fallback data jika backend belum terhubung
+  static const _defaultMataKuliah = 'Pemrograman Mobile';
+  static const _defaultInfo = 'Ruang B.2.1 · 10:00–11:40';
+  static const _defaultBatas = 'Ditutup 10:15';
+  static const _defaultClassId = 4;
 
   /// null = belum absen. Contoh isi: 'Hadir · Luring', 'Izin', 'Sakit'.
   String? _hasil;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncWithSession();
+  }
+
+  @override
+  void didUpdateWidget(covariant AbsensiCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.activeSession != oldWidget.activeSession) {
+      _syncWithSession();
+    }
+  }
+
+  void _syncWithSession() {
+    final s = widget.activeSession;
+    if (s != null && s.sudahAbsen) {
+      if (s.notes != null && s.notes!.isNotEmpty) {
+        _hasil = s.notes;
+      } else if (s.status == 'hadir') {
+        _hasil = 'Hadir · Luring';
+      } else if (s.status == 'izin') {
+        _hasil = 'Izin';
+      } else if (s.status == 'sakit') {
+        _hasil = 'Sakit';
+      }
+    }
+  }
+
+  int get _classId => widget.activeSession?.classId ?? _defaultClassId;
+  String get _mataKuliah => widget.activeSession?.nama ?? _defaultMataKuliah;
+  String get _info {
+    if (widget.activeSession != null) {
+      return '${widget.activeSession!.room} · ${widget.activeSession!.schedule}';
+    }
+    return _defaultInfo;
+  }
+  String get _batas => widget.activeSession?.batas ?? _defaultBatas;
 
   Future<void> _absen() async {
     final pilihan = await showGeneralDialog<String>(
@@ -31,7 +80,7 @@ class _AbsensiCardState extends State<AbsensiCard> {
       barrierLabel: 'Tutup',
       barrierColor: Colors.transparent,
       transitionDuration: Duration.zero,
-      pageBuilder: (context, a1, a2) => const _AbsensiPilihan(
+      pageBuilder: (context, a1, a2) => _AbsensiPilihan(
         mataKuliah: _mataKuliah,
         info: _info,
         batas: _batas,
@@ -45,13 +94,17 @@ class _AbsensiCardState extends State<AbsensiCard> {
       final terkirim = await Navigator.push<bool>(
         context,
         MaterialPageRoute(
-          builder: (_) => const AjukanIzinScreen(
+          builder: (_) => AjukanIzinScreen(
+            classId: _classId,
             namaMatkul: _mataKuliah,
             ruangJam: _info,
           ),
         ),
       );
       if (terkirim != true || !mounted) return;
+      setState(() => _hasil = 'Izin');
+      widget.onAttendanceChanged?.call();
+      return;
     }
 
     // Sakit juga harus lewat form dulu beserta lampiran bukti.
@@ -59,19 +112,37 @@ class _AbsensiCardState extends State<AbsensiCard> {
       final terkirim = await Navigator.push<bool>(
         context,
         MaterialPageRoute(
-          builder: (_) => const AjukanSakitScreen(
+          builder: (_) => AjukanSakitScreen(
+            classId: _classId,
             namaMatkul: _mataKuliah,
             ruangJam: _info,
           ),
         ),
       );
       if (terkirim != true || !mounted) return;
+      setState(() => _hasil = 'Sakit');
+      widget.onAttendanceChanged?.call();
+      return;
     }
 
-    setState(() => _hasil = pilihan);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Absensi tercatat: $pilihan')),
-    );
+    // Hadir (Luring / Daring) dicatat langsung ke backend
+    if (pilihan.startsWith('Hadir')) {
+      final type = pilihan.contains('Daring') ? 'Daring' : 'Luring';
+      try {
+        await AttendanceService.checkIn(classId: _classId, type: type);
+        if (!mounted) return;
+        setState(() => _hasil = pilihan);
+        widget.onAttendanceChanged?.call();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Absensi tercatat: $pilihan')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mencatat presensi: $e')),
+        );
+      }
+    }
   }
 
   @override

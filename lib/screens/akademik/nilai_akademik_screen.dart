@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../models/grade_model.dart';
+import '../../services/grade_service.dart';
 import 'detail_mata_kuliah_screen.dart';
 
 class NilaiScreen extends StatefulWidget {
@@ -17,35 +20,72 @@ class _NilaiScreenState extends State<NilaiScreen> {
   static const _grey = Color(0xFF64748B);
   static const _border = Color(0xFFE2E8F0);
 
-  // Data contoh. Nanti diganti dengan data dari backend.
-  static const Map<String, List<MataKuliah>> _dataNilai = {
-    'Semester Ganjil 26/27': [
-      MataKuliah('Desain User Interface dan User Experience', 'Desain UI/UX',
-          3, 92, 'A'),
-      MataKuliah('Jaringan Komputer', 'Jaringan Komputer', 4, 84, 'B+'),
-      MataKuliah('Pemrograman Mobile', 'Pemrograman Mobile', 4, 78, 'B'),
-      MataKuliah(
-          'Pemrograman Web Framework', 'Web Framework', 3, 88, 'A-'),
-    ],
-    // Kosong = nilai belum tersedia
-    'Semester Genap 26/27': [],
+  Map<String, List<MataKuliah>> _dataNilai = {
+    'Semester Ganjil 2024/2025': [],
+    'Semester Genap 2024/2025': [],
   };
 
-  String _selectedSemester = 'Semester Ganjil 26/27';
+  String _selectedSemester = 'Semester Ganjil 2024/2025';
+  bool _isLoading = true;
+  bool _koneksiTerputus = false;
 
-  // Ubah ke true untuk melihat tampilan "Koneksi terputus"
-  static const bool _simulasiOffline = false;
-
-  bool _koneksiTerputus = _simulasiOffline;
-
-  Future<void> _cobaLagi() async {
-    await Future.delayed(const Duration(seconds: 1));
-    if (!mounted) return;
-    setState(() => _koneksiTerputus = false);
+  @override
+  void initState() {
+    super.initState();
+    _loadGrades();
   }
 
-  List<MataKuliah> get _courses =>
-      _dataNilai[_selectedSemester] ?? const [];
+  Future<void> _loadGrades() async {
+    try {
+      final grades = await GradeService.getGrades();
+      if (!mounted) return;
+
+      final Map<String, List<MataKuliah>> grouped = {};
+
+      for (final g in grades) {
+        final semLabel = 'Semester ${g.academicYear}';
+        grouped.putIfAbsent(semLabel, () => []);
+        grouped[semLabel]!.add(MataKuliah.fromGradeCourse(g));
+      }
+
+      // Pastikan semester aktif teratas
+      if (!grouped.containsKey('Semester Ganjil 2024/2025') &&
+          grouped.isNotEmpty) {
+        _selectedSemester = grouped.keys.first;
+      } else if (grouped.containsKey('Semester Ganjil 2024/2025')) {
+        _selectedSemester = 'Semester Ganjil 2024/2025';
+      }
+
+      // Sediakan opsi semester genap kosong untuk tampilan empty state
+      grouped.putIfAbsent('Semester Genap 2024/2025', () => []);
+
+      setState(() {
+        _dataNilai = grouped;
+        _isLoading = false;
+        _koneksiTerputus = false;
+      });
+    } on SocketException catch (_) {
+      if (mounted) {
+        setState(() {
+          _koneksiTerputus = true;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _cobaLagi() async {
+    setState(() => _isLoading = true);
+    await _loadGrades();
+  }
+
+  List<MataKuliah> get _courses => _dataNilai[_selectedSemester] ?? const [];
 
   int get _totalSks => _courses.fold(0, (sum, c) => sum + c.sks);
 
@@ -122,7 +162,7 @@ class _NilaiScreenState extends State<NilaiScreen> {
               const SizedBox(height: 16),
 
               // Pilihan semester (disembunyikan saat koneksi terputus)
-              if (!_koneksiTerputus)
+              if (!_koneksiTerputus && !_isLoading)
                 InkWell(
                   onTap: _pilihSemester,
                   borderRadius: BorderRadius.circular(14),
@@ -154,24 +194,33 @@ class _NilaiScreenState extends State<NilaiScreen> {
                 ),
 
               Expanded(
-                child: _koneksiTerputus
-                    ? _KoneksiTerputus(
-                        onCobaLagi: _cobaLagi,
-                        onBack: () => widget.onKembaliKeDashboard?.call(),
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: _primary),
                       )
-                    : courses.isEmpty
-                        ? _NilaiKosong(
-                            onAktifkan: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                      Text('Notifikasi nilai diaktifkan'),
-                                ),
-                              );
-                            },
-                            onLihatSemesterLain: _pilihSemester,
+                    : _koneksiTerputus
+                        ? _KoneksiTerputus(
+                            onCobaLagi: _cobaLagi,
+                            onBack: () =>
+                                widget.onKembaliKeDashboard?.call(),
                           )
-                        : _buildDaftarNilai(courses),
+                        : courses.isEmpty
+                            ? _NilaiKosong(
+                                onAktifkan: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content:
+                                          Text('Notifikasi nilai diaktifkan'),
+                                    ),
+                                  );
+                                },
+                                onLihatSemesterLain: _pilihSemester,
+                              )
+                            : RefreshIndicator(
+                                onRefresh: _loadGrades,
+                                color: _primary,
+                                child: _buildDaftarNilai(courses),
+                              ),
               ),
             ],
           ),
@@ -182,6 +231,7 @@ class _NilaiScreenState extends State<NilaiScreen> {
 
   Widget _buildDaftarNilai(List<MataKuliah> courses) {
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(top: 24, bottom: 16),
       children: [
         Row(
@@ -209,14 +259,59 @@ class _NilaiScreenState extends State<NilaiScreen> {
 }
 
 class MataKuliah {
+  final int classId;
   final String nama;
   final String namaPendek;
   final int sks;
   final int persen;
   final String huruf;
+  final double? tugas;
+  final double? uts;
+  final double? uas;
+  final String? lecturerName;
+  final String? schedule;
+  final String? room;
+  final String? semester;
+  final String? academicYear;
+  final String? aiFeedback;
 
   const MataKuliah(
-      this.nama, this.namaPendek, this.sks, this.persen, this.huruf);
+    this.nama,
+    this.namaPendek,
+    this.sks,
+    this.persen,
+    this.huruf, {
+    this.classId = 0,
+    this.tugas,
+    this.uts,
+    this.uas,
+    this.lecturerName,
+    this.schedule,
+    this.room,
+    this.semester,
+    this.academicYear,
+    this.aiFeedback,
+  });
+
+  factory MataKuliah.fromGradeCourse(GradeCourseModel g) {
+    return MataKuliah(
+      g.title,
+      g.shortName,
+      g.sks,
+      g.persen,
+      g.letterGrade,
+      classId: g.classId,
+      tugas: g.tugas,
+      uts: g.uts,
+      uas: g.uas,
+      lecturerName: g.lecturerName,
+      schedule: g.schedule,
+      room: g.room,
+      semester: 'Semester ${g.semester}',
+      academicYear: g.academicYear,
+      aiFeedback: g.aiFeedback,
+    );
+  }
 }
 
 class _CourseCard extends StatelessWidget {

@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import '../../services/grade_service.dart';
+import '../../services/api_client.dart';
 
 class AjukanReviewScreen extends StatefulWidget {
-  /// Judul soal yang ditinjau, contoh: "Soal 2 · Prinsip Gestalt"
+  final int classId;
+
+  /// Judul soal atau komponen yang ditinjau, contoh: "Soal 2 · Prinsip Gestalt"
   final String soal;
 
-  /// Nilai saat ini, contoh: "4 / 5"
+  /// Nilai saat ini, contoh: "4 / 5" atau "88 / 100"
   final String nilaiSekarang;
 
   const AjukanReviewScreen({
     super.key,
+    this.classId = 5,
     required this.soal,
     required this.nilaiSekarang,
   });
@@ -27,6 +32,7 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
 
   final _alasanController = TextEditingController();
   bool _hasError = false;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -34,16 +40,46 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
     super.dispose();
   }
 
-  void _kirim() {
-    if (_alasanController.text.trim().isEmpty) {
+  Future<void> _kirim() async {
+    if (_isSubmitting) return;
+
+    if (_alasanController.text.trim().length < 5) {
       setState(() => _hasError = true);
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Permintaan koreksi terkirim')),
-    );
-    Navigator.pop(context);
+    setState(() => _isSubmitting = true);
+    try {
+      await GradeService.submitGradeReview(
+        classId: widget.classId,
+        component: widget.soal,
+        currentScore: widget.nilaiSekarang,
+        reason: _alasanController.text.trim(),
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Permintaan koreksi nilai berhasil dikirim ke dosen.'),
+          backgroundColor: Color(0xFF059669),
+        ),
+      );
+      Navigator.pop(context, true);
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengirim review nilai: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -204,20 +240,30 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _kirim,
+                  onPressed: _isSubmitting ? null : _kirim,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primary,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: _primary.withOpacity(0.6),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text(
-                    'Kirim permintaan koreksi',
-                    style:
-                        TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          'Kirim permintaan koreksi',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700),
+                        ),
                 ),
               ),
             ],

@@ -1,5 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../../services/attendance_service.dart';
+import '../../services/api_client.dart';
 
 // Memakai warna yang sudah ada di ajukan_izin_screen.dart (tanpa mengubahnya).
 import 'ajukan_izin_screen.dart' show IzinColors;
@@ -7,10 +9,12 @@ import 'ajukan_izin_screen.dart' show IzinColors;
 class AjukanSakitScreen extends StatefulWidget {
   const AjukanSakitScreen({
     super.key,
+    this.classId = 4,
     this.namaMatkul = 'Pemrograman Mobile',
     this.ruangJam = 'Ruang B.2.1 · 10:00–11:40',
   });
 
+  final int classId;
   final String namaMatkul;
   final String ruangJam;
 
@@ -26,6 +30,7 @@ class _AjukanSakitScreenState extends State<AjukanSakitScreen> {
 
   String? _fileName;
   int? _fileSize;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -78,17 +83,36 @@ class _AjukanSakitScreenState extends State<AjukanSakitScreen> {
         _fileSize = null;
       });
 
-  void _kirimSakit() {
+  Future<void> _kirimSakit() async {
+    if (_isSubmitting) return;
+
     if (_keteranganController.text.trim().isEmpty) {
       _toast('Keterangan sakit wajib diisi.');
       return;
     }
     if (_fileName == null) {
-      _toast('Lampiran wajib diisi.');
+      _toast('Lampiran bukti surat sakit wajib diunggah.');
       return;
     }
-    // TODO: kirim ke backend (keterangan + file), baru tutup layar.
-    Navigator.pop(context, true);
+
+    setState(() => _isSubmitting = true);
+    try {
+      await AttendanceService.applyLeave(
+        classId: widget.classId,
+        status: 'sakit',
+        reason: _keteranganController.text.trim(),
+        attachmentUrl: _fileName,
+      );
+      if (!mounted) return;
+      _toast('Pengajuan sakit berhasil dikirim.');
+      Navigator.pop(context, true);
+    } on ApiException catch (e) {
+      if (mounted) _toast(e.message);
+    } catch (e) {
+      if (mounted) _toast('Gagal mengirim pengajuan sakit: $e');
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -139,17 +163,27 @@ class _AjukanSakitScreenState extends State<AjukanSakitScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _kirimSakit,
+                  onPressed: _isSubmitting ? null : _kirimSakit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: IzinColors.primary,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: IzinColors.primary.withValues(alpha: 0.6),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: const Text('Kirim keterangan sakit',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text('Kirim keterangan sakit',
+                          style:
+                              TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
