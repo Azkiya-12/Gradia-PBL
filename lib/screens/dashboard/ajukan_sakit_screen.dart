@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../../services/attendance_service.dart';
@@ -30,6 +31,7 @@ class _AjukanSakitScreenState extends State<AjukanSakitScreen> {
 
   String? _fileName;
   int? _fileSize;
+  Uint8List? _fileBytes;
   bool _isSubmitting = false;
 
   @override
@@ -50,7 +52,7 @@ class _AjukanSakitScreenState extends State<AjukanSakitScreen> {
   }
 
   /// Validasi lalu simpan file terpilih.
-  void _setFile(String name, int size) {
+  void _setFile(String name, int size, Uint8List? bytes) {
     final ext = name.split('.').last.toLowerCase();
     if (!_allowedExt.contains(ext)) {
       _toast('Format file harus PDF, JPG, atau PNG.');
@@ -63,23 +65,27 @@ class _AjukanSakitScreenState extends State<AjukanSakitScreen> {
     setState(() {
       _fileName = name;
       _fileSize = size;
+      _fileBytes = bytes;
     });
   }
 
-  // Cara memilih file sama persis dengan AjukanIzinScreen.
+  // Cara memilih file — withData: true agar bytes tersedia untuk dikirim ke backend
   Future<void> _pilihFile() async {
     final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: _allowedExt,
+      withData: true,
     );
-    if (files.isEmpty) return; // pengguna batal
+    if (files.isEmpty) return;
     final f = files.first;
-    final size = f.lengthSync() ?? await f.length() ?? 0;
-    _setFile(f.name, size);
+    final bytes = f.bytes;
+    final size = bytes?.length ?? 0;
+    _setFile(f.name, size, bytes);
   }
 
   void _hapusFile() => setState(() {
         _fileName = null;
+        _fileBytes = null;
         _fileSize = null;
       });
 

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../../services/attendance_service.dart';
@@ -38,6 +39,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
 
   String? _fileName;
   int? _fileSize;
+  Uint8List? _fileBytes;
   bool _isSubmitting = false;
 
   @override
@@ -58,7 +60,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
   }
 
   /// Validasi lalu simpan file terpilih (dari picker maupun drag & drop).
-  void _setFile(String name, int size) {
+  void _setFile(String name, int size, Uint8List? bytes) {
     final ext = name.split('.').last.toLowerCase();
     if (!_allowedExt.contains(ext)) {
       _toast('Format file harus PDF, JPG, atau PNG.');
@@ -71,6 +73,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     setState(() {
       _fileName = name;
       _fileSize = size;
+      _fileBytes = bytes;
     });
   }
 
@@ -78,16 +81,19 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: _allowedExt,
+      withData: true, // Muat bytes ke memori untuk dikirim ke backend
     );
-    if (files.isEmpty) return; // pengguna batal
+    if (files.isEmpty) return;
     final f = files.first;
-    final size = f.lengthSync() ?? await f.length() ?? 0;
-    _setFile(f.name, size);
+    final bytes = f.bytes;
+    final size = bytes?.length ?? 0;
+    _setFile(f.name, size, bytes);
   }
 
   // Hapus referensi _onDrop karena desktop_drop dilepas
   void _hapusFile() => setState(() {
         _fileName = null;
+        _fileBytes = null;
         _fileSize = null;
       });
 
@@ -98,18 +104,20 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
       _toast('Alasan izin wajib diisi.');
       return;
     }
-    if (_fileName == null) {
+    if (_fileName == null || _fileBytes == null) {
       _toast('Lampiran bukti wajib diunggah.');
       return;
     }
 
     setState(() => _isSubmitting = true);
     try {
+      // File dikirim ke Backend → Backend push ke Vercel Blob
       await AttendanceService.applyLeave(
         classId: widget.classId,
         status: 'izin',
         reason: _alasanController.text.trim(),
-        attachmentUrl: _fileName,
+        attachmentBytes: _fileBytes,
+        attachmentFileName: _fileName,
       );
       if (!mounted) return;
       _toast('Pengajuan izin berhasil dikirim.');

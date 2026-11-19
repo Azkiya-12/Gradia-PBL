@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import '../models/attendance_model.dart';
 import 'api_client.dart';
 import 'auth_service.dart';
@@ -34,16 +35,36 @@ class AttendanceService {
     );
   }
 
-  /// Mengajukan izin atau sakit beserta alasan dan tautan lampiran
+  /// Mengajukan izin atau sakit beserta alasan dan lampiran bukti.
+  ///
+  /// [attachmentBytes] dan [attachmentFileName] adalah file yang akan
+  /// diunggah ke backend terlebih dahulu — backend yang meneruskannya
+  /// ke Vercel Blob. FE / Mobile TIDAK boleh upload langsung ke Blob.
   static Future<Map<String, dynamic>> applyLeave({
     required int classId,
     required String status,
     required String reason,
-    String? attachmentUrl,
+    Uint8List? attachmentBytes,
+    String? attachmentFileName,
   }) async {
     final token = await AuthService.getToken();
     if (token == null) {
       throw ApiException('Sesi telah berakhir, silakan login kembali.');
+    }
+
+    String attachmentUrl = '';
+
+    // Jika ada file, upload ke backend dulu → Vercel Blob
+    if (attachmentBytes != null &&
+        attachmentBytes.isNotEmpty &&
+        attachmentFileName != null) {
+      attachmentUrl = await ApiClient.uploadFile(
+        '/upload',
+        fileBytes: attachmentBytes,
+        fileName: attachmentFileName,
+        token: token,
+        folder: 'attachments',
+      );
     }
 
     return await ApiClient.post(
@@ -52,10 +73,9 @@ class AttendanceService {
         'classId': classId,
         'status': status.toLowerCase().trim(),
         'reason': reason.trim(),
-        'attachmentUrl': attachmentUrl?.trim() ?? '',
+        'attachmentUrl': attachmentUrl,
       },
       token: token,
     );
   }
 }
-

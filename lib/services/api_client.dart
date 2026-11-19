@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -97,6 +98,56 @@ class ApiClient {
       throw ApiException(
         'Gagal terhubung ke server backend ($e). Pastikan server aktif.',
       );
+    }
+  }
+
+  /// Upload file ke Backend (backend yang push ke Vercel Blob).
+  /// FE / Mobile TIDAK boleh upload langsung ke Vercel Blob.
+  ///
+  /// Returns public URL dari Vercel Blob.
+  static Future<String> uploadFile(
+    String path, {
+    required Uint8List fileBytes,
+    required String fileName,
+    String? token,
+    String folder = 'attachments',
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}$path?folder=$folder');
+    try {
+      final request = http.MultipartRequest('POST', uri);
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName,
+        ),
+      );
+
+      final streamed = await request.send().timeout(
+        const Duration(seconds: 30),
+      );
+      final body = await streamed.stream.bytesToString();
+      final decoded = jsonDecode(body);
+
+      if (streamed.statusCode >= 200 && streamed.statusCode < 300) {
+        final url = decoded['url'];
+        if (url == null || url.toString().isEmpty) {
+          throw ApiException('Respons upload tidak mengandung URL.');
+        }
+        return url.toString();
+      } else {
+        final errMsg = decoded is Map && decoded['error'] != null
+            ? decoded['error'].toString()
+            : 'Upload gagal (${streamed.statusCode})';
+        throw ApiException(errMsg, statusCode: streamed.statusCode);
+      }
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException('Gagal mengunggah file ke server: $e');
     }
   }
 }
