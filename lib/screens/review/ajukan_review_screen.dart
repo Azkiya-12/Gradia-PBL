@@ -32,7 +32,7 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
 
   final _alasanController = TextEditingController();
   bool _hasError = false;
-  bool _isSubmitting = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -41,14 +41,18 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
   }
 
   Future<void> _kirim() async {
-    if (_isSubmitting) return;
+    if (_isLoading) return;
 
     if (_alasanController.text.trim().length < 5) {
       setState(() => _hasError = true);
       return;
     }
 
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
     try {
       await GradeService.submitGradeReview(
         classId: widget.classId,
@@ -60,25 +64,41 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Permintaan koreksi nilai berhasil dikirim ke dosen.'),
-          backgroundColor: Color(0xFF059669),
+          backgroundColor: Color(0xFF16A34A),
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('Permintaan koreksi nilai berhasil diajukan ke dosen.'),
+              ),
+            ],
+          ),
         ),
       );
       Navigator.pop(context, true);
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
+          SnackBar(
+            backgroundColor: _errorRed,
+            content: Text(e.message),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengirim review nilai: $e')),
+          SnackBar(
+            backgroundColor: _errorRed,
+            content: Text('Gagal mengirim review nilai: $e'),
+          ),
         );
       }
     } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -240,7 +260,7 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _kirim,
+                  onPressed: _isLoading ? null : _kirim,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primary,
                     foregroundColor: Colors.white,
@@ -250,13 +270,13 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: _isSubmitting
+                  child: _isLoading
                       ? const SizedBox(
                           width: 22,
                           height: 22,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
                             strokeWidth: 2.5,
+                            color: Colors.white,
                           ),
                         )
                       : const Text(
