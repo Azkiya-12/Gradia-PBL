@@ -81,12 +81,11 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: _allowedExt,
-      withData: true, // Muat bytes ke memori untuk dikirim ke backend
     );
     if (files.isEmpty) return;
     final f = files.first;
-    final bytes = f.bytes;
-    final size = bytes?.length ?? 0;
+    final bytes = await f.readAsBytes();
+    final size = bytes.length;
     _setFile(f.name, size, bytes);
   }
 

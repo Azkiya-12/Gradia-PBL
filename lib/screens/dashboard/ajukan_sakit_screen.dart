@@ -74,12 +74,11 @@ class _AjukanSakitScreenState extends State<AjukanSakitScreen> {
     final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: _allowedExt,
-      withData: true,
     );
     if (files.isEmpty) return;
     final f = files.first;
-    final bytes = f.bytes;
-    final size = bytes?.length ?? 0;
+    final bytes = await f.readAsBytes();
+    final size = bytes.length;
     _setFile(f.name, size, bytes);
   }
 
@@ -96,7 +95,7 @@ class _AjukanSakitScreenState extends State<AjukanSakitScreen> {
       _toast('Keterangan sakit wajib diisi.');
       return;
     }
-    if (_fileName == null) {
+    if (_fileName == null || _fileBytes == null) {
       _toast('Lampiran bukti surat sakit wajib diunggah.');
       return;
     }
@@ -107,7 +106,8 @@ class _AjukanSakitScreenState extends State<AjukanSakitScreen> {
         classId: widget.classId,
         status: 'sakit',
         reason: _keteranganController.text.trim(),
-        attachmentUrl: _fileName,
+        attachmentBytes: _fileBytes,
+        attachmentFileName: _fileName,
       );
       if (!mounted) return;
       _toast('Pengajuan sakit berhasil dikirim.');
