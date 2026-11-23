@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Warna diambil langsung dari desain Figma Gradia.
 class AppColors {
   static const ink = Color(0xFF0F172A);
   static const muted = Color(0xFF64748B);
