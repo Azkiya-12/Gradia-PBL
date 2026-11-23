@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import '../../services/notification_service.dart';
 import '../../models/user_model.dart';
 import '../../models/dashboard_model.dart';
 import '../notifikasi/notifikasi_screen.dart';
@@ -19,6 +20,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   UserModel? _user;
   DashboardData? _dashboardData;
+  int _unreadNotifCount = 0;
 
   @override
   void initState() {
@@ -40,6 +42,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _user = futures[0] as UserModel;
           _dashboardData = futures[1] as DashboardData;
         });
+      }
+    } catch (_) {}
+
+    try {
+      final notifRes = await NotificationService.getNotifications();
+      if (mounted) {
+        setState(() => _unreadNotifCount = notifRes.unreadCount);
       }
     } catch (_) {}
   }
@@ -130,18 +139,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   IconButton(
                     padding: const EdgeInsets.all(4),
                     constraints: const BoxConstraints(),
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const NotifikasiScreen(),
                         ),
                       );
+                      _loadAll();
                     },
-                    icon: const Icon(
-                      Icons.notifications_none_rounded,
-                      size: 26,
-                      color: Color(0xFF0F172A),
+                    icon: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Icon(
+                          Icons.notifications_none_rounded,
+                          size: 26,
+                          color: Color(0xFF0F172A),
+                        ),
+                        if (_unreadNotifCount > 0)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFDC2626),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ],

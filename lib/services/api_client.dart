@@ -62,6 +62,47 @@ class ApiClient {
     }
   }
 
+  static Future<Map<String, dynamic>> put(
+    String path, {
+    Map<String, dynamic>? body,
+    String? token,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}$path');
+    try {
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+      };
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await _client
+          .put(
+            uri,
+            headers: headers,
+            body: body != null ? jsonEncode(body) : null,
+          )
+          .timeout(ApiConfig.timeout);
+
+      final decoded = jsonDecode(response.body);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return decoded is Map<String, dynamic> ? decoded : {'data': decoded};
+      } else {
+        final errorMsg = decoded is Map && decoded['error'] != null
+            ? decoded['error'].toString()
+            : 'Terjadi kesalahan (${response.statusCode})';
+        throw ApiException(errorMsg, statusCode: response.statusCode);
+      }
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(
+        'Gagal terhubung ke server backend ($e). Pastikan server aktif.',
+      );
+    }
+  }
+
   static Future<Map<String, dynamic>> get(
     String path, {
     String? token,
