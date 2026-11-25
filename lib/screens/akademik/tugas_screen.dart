@@ -171,6 +171,29 @@ class _TugasScreenState extends State<TugasScreen> {
                       ? const Center(
                           child: CircularProgressIndicator(color: _primary),
                         )
+                      : _errorMessage != null && _data == null
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.error_outline_rounded,
+                                        size: 40, color: Color(0xFFDC2626)),
+                                    const SizedBox(height: 12),
+                                    Text(_errorMessage!,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                            color: _grey, fontSize: 13)),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _loadAssignments,
+                                      child: const Text('Coba lagi'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
                       : RefreshIndicator(
                           onRefresh: _loadAssignments,
                           color: _primary,
@@ -894,7 +917,7 @@ class _DetailTugasSheetState extends State<_DetailTugasSheet> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primary,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: _primary.withOpacity(0.6),
+                    disabledBackgroundColor: _primary.withValues(alpha: 0.6),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),

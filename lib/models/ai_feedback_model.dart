@@ -60,6 +60,19 @@ class GeneratedAiFeedback {
     this.recommendation,
   });
 
+  String get effectiveStrength =>
+      (strength != null && strength!.isNotEmpty) ? strength! : feedback;
+
+  String get effectiveImprovement =>
+      (improvement != null && improvement!.isNotEmpty)
+          ? improvement!
+          : 'Tingkatkan latihan praktikum dan perdalam konsep pada materi yang masih memerlukan penguatan.';
+
+  String get effectiveRecommendation =>
+      (recommendation != null && recommendation!.isNotEmpty)
+          ? recommendation!
+          : 'Jaga kehadiran aktif di kelas, diskusikan materi sulit bersama dosen atau rekan kelompok, dan kumpulkan tugas tepat waktu.';
+
   factory GeneratedAiFeedback.fromJson(Map<String, dynamic> json) {
     return GeneratedAiFeedback(
       feedback: json['feedback']?.toString() ?? '',

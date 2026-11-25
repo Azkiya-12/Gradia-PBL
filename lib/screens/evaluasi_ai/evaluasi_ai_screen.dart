@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app_colors.dart';
+import '../../services/ai_service.dart';
 import '../../widgets/common.dart';
 import 'kekurangan_screen.dart';
 import 'kelebihan_screen.dart';
@@ -11,6 +12,13 @@ class EvaluasiAiContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final aiText = AiService.cachedGeneratedFeedback?.feedback ??
+        (AiService.cachedFeedbacks != null &&
+                AiService.cachedFeedbacks!.isNotEmpty &&
+                AiService.cachedFeedbacks!.first.aiFeedback.isNotEmpty
+            ? AiService.cachedFeedbacks!.first.aiFeedback
+            : 'AI menilai perkembangan akademikmu dari nilai, kehadiran, dan konsistensi belajar. Pertahankan ritme di mata kuliah desain, dan sisihkan waktu ekstra untuk Pemrograman Mobile.');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -56,19 +64,20 @@ class EvaluasiAiContent extends StatelessWidget {
               colors: [AppColors.primary, AppColors.violet],
             ),
           ),
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Evaluasi pribadi',
+              const Text('Evaluasi pribadi',
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w700)),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
-                  'AI menilai perkembangan akademikmu dari nilai, kehadiran, dan konsistensi belajar. Pertahankan ritme di mata kuliah desain, dan sisihkan waktu ekstra untuk Pemrograman Mobile.',
-                  style: TextStyle(
-                      color: Colors.white, fontSize: 13, height: 1.55)),
+                aiText,
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 13, height: 1.55),
+              ),
             ],
           ),
         ),

@@ -1,102 +1,144 @@
 import 'package:flutter/material.dart';
 import '../../app_colors.dart';
+import '../../models/grade_model.dart';
+import '../../services/grade_service.dart';
 import '../../widgets/common.dart';
 import '../review/ajukan_review_screen.dart';
 
-class _Butir {
-  final String title;
-  final String nilai;
-  final String? note;
-  const _Butir(this.title, this.nilai, {this.note});
-}
-
-class _PenilaianData {
-  final String nilaiTotal;
-  final String judulButir; // judul section daftar nilai
-  final String hint;
-  final List<_Butir> butir;
-  final String komentar;
-
-  const _PenilaianData({
-    required this.nilaiTotal,
-    required this.judulButir,
-    required this.hint,
-    required this.butir,
-    required this.komentar,
-  });
-}
-
-const _kuis = _PenilaianData(
-  nilaiTotal: '18 / 20',
-  judulButir: 'Nilai per soal',
-  hint: 'Tap soal yang ada pengurangan nilai untuk ajukan koreksi nilai.',
-  butir: [
-    _Butir('Soal 1 · Hierarki visual', '5 / 5'),
-    _Butir('Soal 2 · Prinsip Gestalt', '4 / 5',
-        note: '−1 · Contoh Common Region belum tepat'),
-    _Butir('Soal 3 · Warna dan kontras', '5 / 5'),
-    _Butir('Soal 4 · Microcopy error', '4 / 5',
-        note: '−1 · Pesan belum memberi solusi'),
-  ],
-  komentar:
-      'Analisis Gestalt sudah kuat. Perbaiki contoh Common Region dan tambahkan solusi pada microcopy error.',
-);
-
-const _wireframe = _PenilaianData(
-  nilaiTotal: '92 / 100',
-  judulButir: 'Nilai per kriteria',
-  hint: 'Tap kriteria yang ada pengurangan nilai untuk ajukan review.',
-  butir: [
-    _Butir('Struktur dan alur layar', '22 / 25',
-        note: '−3 · Alur dari Nilai ke Detail belum lengkap'),
-    _Butir('Konsistensi layout dan grid', '20 / 20'),
-    _Butir('Hierarki visual', '18 / 20',
-        note: '−2 · Judul dan isi kurang dibedakan'),
-    _Butir('Kelengkapan layar', '17 / 20',
-        note: '−3 · State error belum ada'),
-    _Butir('Kerapian dan dokumentasi', '15 / 15'),
-  ],
-  komentar:
-      'Wireframe sudah rapi dan konsisten. Lengkapi state error dan perjelas hierarki antara judul dan konten.',
-);
-
-const _uts = _PenilaianData(
-  nilaiTotal: '88 / 100',
-  judulButir: 'Nilai per bagian',
-  hint: 'Tap bagian yang ada pengurangan nilai untuk ajukan review.',
-  butir: [
-    _Butir('Bagian A · Pilihan ganda', '30 / 30'),
-    _Butir('Bagian B · Studi kasus', '30 / 35',
-        note: '−5 · Analisis heuristik belum lengkap'),
-    _Butir('Bagian C · Esai', '28 / 35',
-        note: '−7 · Argumen kurang didukung contoh'),
-  ],
-  komentar:
-      'Pemahaman konsep sudah baik. Perdalam analisis heuristik dan sertakan contoh nyata pada jawaban esai.',
-);
-
-const Map<String, _PenilaianData> _dataPenilaian = {
-  'Kuis 1: Prinsip Desain': _kuis,
-  'Tugas: Wireframe Aplikasi': _wireframe,
-  'UTS': _uts,
-};
-
-/// Screen 08 - Detail penilaian (data dummy)
-class DetailPenilaianScreen extends StatelessWidget {
+/// Screen 08 - Detail penilaian komponen mata kuliah
+class DetailPenilaianScreen extends StatefulWidget {
   final String judul;
   final int classId;
+  final double? nilaiAwal;
+  final String? komentarAwal;
+
   const DetailPenilaianScreen({
     super.key,
-    this.judul = 'Kuis 1: Prinsip Desain',
-    this.classId = 5,
+    this.judul = 'Tugas Terstruktur',
+    this.classId = 0,
+    this.nilaiAwal,
+    this.komentarAwal,
   });
 
   @override
+  State<DetailPenilaianScreen> createState() => _DetailPenilaianScreenState();
+}
+
+class _DetailPenilaianScreenState extends State<DetailPenilaianScreen> {
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  double? _score;
+  String? _komentar;
+
+  @override
+  void initState() {
+    super.initState();
+    _score = widget.nilaiAwal;
+    _komentar = widget.komentarAwal;
+
+    if (_score == null && widget.classId > 0) {
+      _loadGrade();
+    }
+  }
+
+  Future<void> _loadGrade() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final grades = await GradeService.getGrades();
+      final course = grades.cast<GradeCourseModel?>().firstWhere(
+            (c) => c?.classId == widget.classId,
+            orElse: () => null,
+          );
+
+      if (course != null) {
+        final j = widget.judul.toLowerCase();
+        double? matchedScore;
+        if (j.contains('tugas')) {
+          matchedScore = course.tugas;
+        } else if (j.contains('uts')) {
+          matchedScore = course.uts;
+        } else if (j.contains('uas')) {
+          matchedScore = course.uas;
+        } else {
+          matchedScore = course.finalScore;
+        }
+
+        if (mounted) {
+          setState(() {
+            _score = matchedScore;
+            _komentar = course.aiFeedback;
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final d = _dataPenilaian[judul] ?? _kuis;
+    if (_isLoading) {
+      return SubScreen(
+        title: widget.judul,
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 60),
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return SubScreen(
+        title: widget.judul,
+        child: AppCard(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              const Icon(Icons.error_outline_rounded,
+                  size: 40, color: AppColors.danger),
+              const SizedBox(height: 12),
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: AppColors.muted),
+              ),
+              const SizedBox(height: 16),
+              PrimaryButton('Coba lagi', onPressed: _loadGrade),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final scoreDisplay = _score != null
+        ? '${_score! % 1 == 0 ? _score!.toInt().toString() : _score!.toStringAsFixed(1)} / 100'
+        : '0 / 100';
+    final hasScore = _score != null && _score! > 0;
+    final komentarText = (_komentar != null && _komentar!.isNotEmpty)
+        ? _komentar!
+        : 'Belum ada catatan atau komentar khusus dari dosen untuk komponen ini.';
 
     return SubScreen(
-      title: judul,
+      title: widget.judul,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -111,102 +153,99 @@ class DetailPenilaianScreen extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(d.nilaiTotal,
-                        style: const TextStyle(
-                            fontSize: 40,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.ink)),
+                    Text(
+                      scoreDisplay,
+                      style: const TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                    ),
                     const SizedBox(width: 10),
-                    const StatusChip('Dinilai', AppColors.successSoft,
-                        AppColors.success),
+                    StatusChip(
+                      hasScore ? 'Dinilai' : 'Belum dinilai',
+                      hasScore ? AppColors.successSoft : AppColors.slate100,
+                      hasScore ? AppColors.success : AppColors.muted,
+                    ),
                   ],
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          SectionTitle(d.judulButir),
+          const SectionTitle('Rincian penilaian'),
           const SizedBox(height: 12),
           AppCard(
-            child: Column(
-              children: divide([
-                for (final b in d.butir)
-                  _SoalRow(b.title, b.nilai, note: b.note, classId: classId),
-              ]),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(d.hint,
-              style: const TextStyle(fontSize: 11, color: AppColors.muted)),
-          const SizedBox(height: 18),
-          const SectionTitle('Komentar dosen'),
-          const SizedBox(height: 12),
-          InfoCard(d.komentar),
-        ],
-      ),
-    );
-  }
-}
-
-class _SoalRow extends StatelessWidget {
-  final String title;
-  final String nilai;
-  final String? note;
-  final int classId;
-  const _SoalRow(this.title, this.nilai, {this.note, this.classId = 5});
-
-  @override
-  Widget build(BuildContext context) {
-    // GestureDetector: bisa diklik tanpa efek percikan (ripple)
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: note == null
-          ? null
-          : () => push(
-              context,
-              AjukanReviewScreen(
-                classId: classId,
-                soal: title,
-                nilaiSekarang: nilai,
-              )),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.slate100,
+                  ),
+                  child: const Icon(
+                    Icons.assignment_outlined,
+                    size: 18,
+                    color: AppColors.muted,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Rincian per butir soal belum tersedia',
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.ink)),
-                  if (note != null) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.warningSoft,
-                        borderRadius: BorderRadius.circular(8),
+                          color: AppColors.ink,
+                        ),
                       ),
-                      child: Text(note!,
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.warning)),
-                    ),
-                  ],
-                ],
-              ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Nilai komponen ini tercatat secara terpadu dari sistem akademik.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.muted,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(nilai,
-                style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink)),
-          ],
-        ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Jika penilaian dirasa kurang tepat, kamu dapat mengajukan koreksi nilai ke dosen pengampu.',
+            style: TextStyle(fontSize: 11, color: AppColors.muted),
+          ),
+          const SizedBox(height: 16),
+          SecondaryButton(
+            'Ajukan koreksi nilai',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AjukanReviewScreen(
+                    classId: widget.classId,
+                    soal: widget.judul,
+                    nilaiSekarang: scoreDisplay,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+          const SectionTitle('Komentar dosen'),
+          const SizedBox(height: 12),
+          InfoCard(komentarText),
+        ],
       ),
     );
   }

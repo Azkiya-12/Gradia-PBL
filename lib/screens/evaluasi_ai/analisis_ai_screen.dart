@@ -1,28 +1,254 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../app_colors.dart';
+import '../../models/ai_feedback_model.dart';
+import '../../services/ai_service.dart';
+import '../../services/grade_service.dart';
 import '../../widgets/common.dart';
 
 /// Isi tab "Analisis AI" (dipakai di screen 11 dan screen 13).
-class AnalisisAiContent extends StatelessWidget {
+class AnalisisAiContent extends StatefulWidget {
   const AnalisisAiContent({super.key});
 
   @override
+  State<AnalisisAiContent> createState() => _AnalisisAiContentState();
+}
+
+class _AnalisisAiContentState extends State<AnalisisAiContent> {
+  bool _isLoading = true;
+  bool _isGenerating = false;
+  String? _errorMessage;
+
+  List<AiFeedbackItem> _savedFeedbacks = [];
+  GeneratedAiFeedback? _generatedFeedback;
+  List<double> _ipsList = [];
+  List<double> _ipkList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData({bool forceRefresh = false}) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final saved = await AiService.getSavedAiFeedbacks(forceRefresh: forceRefresh);
+      final cachedGen = AiService.cachedGeneratedFeedback;
+
+      _savedFeedbacks = saved;
+      _generatedFeedback = cachedGen;
+
+      await _computeIpsIpk();
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _computeIpsIpk() async {
+    try {
+      final grades = await GradeService.getGrades();
+      if (grades.isNotEmpty) {
+        final Map<int, List<double>> semesterScores = {};
+        for (final g in grades) {
+          semesterScores.putIfAbsent(g.semester, () => []);
+          semesterScores[g.semester]!.add(_scoreToPoint(g.finalScore));
+        }
+
+        final sortedSemesters = semesterScores.keys.toList()..sort();
+        final List<double> computedIps = [];
+        for (final sem in sortedSemesters) {
+          final scores = semesterScores[sem]!;
+          final avg = scores.reduce((a, b) => a + b) / scores.length;
+          computedIps.add(double.parse(avg.toStringAsFixed(2)));
+        }
+
+        if (computedIps.isNotEmpty) {
+          _ipsList = computedIps;
+          _ipkList = _calculateCumulativeIpk(_ipsList);
+          return;
+        }
+      }
+    } catch (_) {}
+
+    if (_savedFeedbacks.isNotEmpty) {
+      final points = _savedFeedbacks.map((f) => _scoreToPoint(f.finalScore)).toList();
+      _ipsList = [double.parse((points.reduce((a, b) => a + b) / points.length).toStringAsFixed(2))];
+      _ipkList = _calculateCumulativeIpk(_ipsList);
+    } else {
+      _ipsList = [3.5];
+      _ipkList = [3.5];
+    }
+  }
+
+  double _scoreToPoint(double score) {
+    if (score >= 85) return 4.0;
+    if (score >= 80) return 3.7;
+    if (score >= 75) return 3.3;
+    if (score >= 70) return 3.0;
+    if (score >= 65) return 2.7;
+    if (score >= 60) return 2.3;
+    if (score >= 55) return 2.0;
+    if (score >= 40) return 1.0;
+    return 0.0;
+  }
+
+  List<double> _calculateCumulativeIpk(List<double> ips) {
+    final result = <double>[];
+    var sum = 0.0;
+    for (var i = 0; i < ips.length; i++) {
+      sum += ips[i];
+      result.add(double.parse((sum / (i + 1)).toStringAsFixed(2)));
+    }
+    return result;
+  }
+
+  Future<void> _generateEvaluation() async {
+    setState(() {
+      _isGenerating = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final gen = await AiService.generateFeedback();
+      if (!mounted) return;
+      setState(() {
+        _generatedFeedback = gen;
+        _isGenerating = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString();
+        _isGenerating = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 48),
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return AppCard(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const Icon(Icons.error_outline_rounded,
+                size: 40, color: AppColors.danger),
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: AppColors.muted),
+            ),
+            const SizedBox(height: 16),
+            PrimaryButton('Coba lagi', onPressed: () => _loadData(forceRefresh: true)),
+          ],
+        ),
+      );
+    }
+
+    final hasData = _savedFeedbacks.isNotEmpty || _generatedFeedback != null;
+    if (!hasData) {
+      return EmptyState(
+        icon: Icons.auto_awesome_outlined,
+        title: 'Belum ada evaluasi AI',
+        message:
+            'Evaluasi AI menganalisis nilai akademik dan capaian pembelajaran OBE untuk memberikan telaah performa.',
+        primaryLabel: _isGenerating ? 'Menganalisis...' : 'Generate Evaluasi',
+        onPrimary: _isGenerating ? () {} : _generateEvaluation,
+      );
+    }
+
+    // Tentukan Kesimpulan Performa
+    String summary;
+    if (_generatedFeedback != null) {
+      summary = _generatedFeedback!.feedback;
+    } else {
+      final feedbacks = _savedFeedbacks
+          .where((f) => f.aiFeedback.isNotEmpty)
+          .map((f) => '${f.title}: ${f.aiFeedback}')
+          .toList();
+      summary = feedbacks.isNotEmpty
+          ? feedbacks.join('\n\n')
+          : 'Evaluasi capaian OBE telah tersimpan. Pertahankan ritme belajar pada mata kuliah unggulan.';
+    }
+
+    // Tentukan Terbaik & Perlu Ditingkatkan
+    String bestName = 'Mata Kuliah Unggulan';
+    String bestDesc = 'Capaian indikator OBE sangat memuaskan.';
+    String worstName = 'Perlu Ditingkatkan';
+    String worstDesc = 'Perlu latihan tambahan dan konsultasi bimbingan.';
+
+    if (_savedFeedbacks.isNotEmpty) {
+      final sorted = List<AiFeedbackItem>.from(_savedFeedbacks)
+        ..sort((a, b) => b.finalScore.compareTo(a.finalScore));
+      final best = sorted.first;
+      final worst = sorted.last;
+
+      bestName = best.title;
+      bestDesc = best.aiFeedback.isNotEmpty
+          ? best.aiFeedback
+          : 'Nilai ${best.finalScore.toStringAsFixed(0)} (${best.letterGrade}), tertinggi di kelas.';
+
+      if (sorted.length > 1) {
+        worstName = worst.title;
+        worstDesc = worst.aiFeedback.isNotEmpty
+            ? worst.aiFeedback
+            : 'Nilai ${worst.finalScore.toStringAsFixed(0)} (${worst.letterGrade}). Perbanyak latihan dan tingkatkan tugas praktik.';
+      } else {
+        worstName = 'Target Berikutnya';
+        worstDesc = 'Pertahankan penguasaan materi dan tingkatkan pemahaman studi kasus mandiri.';
+      }
+    } else if (_generatedFeedback != null) {
+      bestName = 'Penguasaan Konsep';
+      bestDesc = _generatedFeedback!.effectiveStrength;
+      worstName = 'Fokus Perbaikan';
+      worstDesc = _generatedFeedback!.effectiveImprovement;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        SectionTitle('Kesimpulan performa'),
-        SizedBox(height: 12),
-        InfoCard(
-            'IPK naik konsisten enam semester terakhir dan kehadiran stabil di atas 90%. Nilai Pemrograman Mobile masih di bawah rata-rata kelasmu.'),
-        SizedBox(height: 24),
-        SectionTitle('Grafik IPK dan IPS per semester'),
-        SizedBox(height: 12),
-        _IpkIpsChartCard(),
-        SizedBox(height: 24),
-        SectionTitle('Terbaik dan perlu ditingkatkan'),
-        SizedBox(height: 12),
-        _BestWorst(),
+      children: [
+        const SectionTitle('Kesimpulan performa'),
+        const SizedBox(height: 12),
+        InfoCard(summary),
+        const SizedBox(height: 24),
+        const SectionTitle('Grafik IPK dan IPS per semester'),
+        const SizedBox(height: 12),
+        _IpkIpsChartCard(ips: _ipsList, ipk: _ipkList),
+        const SizedBox(height: 24),
+        const SectionTitle('Terbaik dan perlu ditingkatkan'),
+        const SizedBox(height: 12),
+        _BestWorst(
+          bestName: bestName,
+          bestDesc: bestDesc,
+          worstName: worstName,
+          worstDesc: worstDesc,
+        ),
       ],
     );
   }
@@ -32,25 +258,23 @@ class AnalisisAiContent extends StatelessWidget {
 // Grafik IPS (per semester) dan IPK (kumulatif)
 // ---------------------------------------------------------------
 class _IpkIpsChartCard extends StatelessWidget {
-  const _IpkIpsChartCard();
+  final List<double> ips;
+  final List<double> ipk;
 
-  // Data contoh IPS enam semester. Nanti dari backend.
-  static const List<double> _ips = [3.1, 3.3, 3.2, 3.5, 3.6, 3.7];
-
-  /// IPK = rata-rata kumulatif IPS (dengan asumsi SKS tiap semester sama).
-  List<double> get _ipk {
-    final hasil = <double>[];
-    var total = 0.0;
-    for (var i = 0; i < _ips.length; i++) {
-      total += _ips[i];
-      hasil.add(total / (i + 1));
-    }
-    return hasil;
-  }
+  const _IpkIpsChartCard({
+    required this.ips,
+    required this.ipk,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final ipk = _ipk;
+    final displayIps = ips.isNotEmpty ? ips : [3.5];
+    final displayIpk = ipk.isNotEmpty ? ipk : [3.5];
+
+    final summaryText = displayIps.length > 1
+        ? 'IPS dari ${displayIps.first.toStringAsFixed(1)} ke ${displayIps.last.toStringAsFixed(1)}, IPK dari ${displayIpk.first.toStringAsFixed(1)} ke ${displayIpk.last.toStringAsFixed(1)}.'
+        : 'IPS Semester ini: ${displayIps.first.toStringAsFixed(2)}, IPK Kumulatif: ${displayIpk.first.toStringAsFixed(2)}.';
+
     return AppCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -68,15 +292,13 @@ class _IpkIpsChartCard extends StatelessWidget {
           AspectRatio(
             aspectRatio: 2.0,
             child: CustomPaint(
-              painter: _IpkIpsPainter(_ips, ipk),
+              painter: _IpkIpsPainter(displayIps, displayIpk),
               size: Size.infinite,
             ),
           ),
           const SizedBox(height: 10),
           Text(
-            'IPS naik dari ${_ips.first.toStringAsFixed(1)} ke '
-            '${_ips.last.toStringAsFixed(1)}, IPK naik dari '
-            '${ipk.first.toStringAsFixed(1)} ke ${ipk.last.toStringAsFixed(1)}.',
+            summaryText,
             style: const TextStyle(fontSize: 12, color: AppColors.muted),
           ),
         ],
@@ -122,35 +344,34 @@ class _IpkIpsPainter extends CustomPainter {
   final List<double> ipk;
   _IpkIpsPainter(this.ips, this.ipk);
 
-  static const double _min = 3.0;
-  static const double _max = 3.8;
-
-  void _teks(Canvas canvas, String t, Offset o) {
-    final tp = TextPainter(
-      text: TextSpan(
-        text: t,
-        style: const TextStyle(fontSize: 10, color: AppColors.muted),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp.paint(canvas, o);
-  }
-
   @override
   void paint(Canvas canvas, Size size) {
     const kiri = 30.0, bawah = 22.0, atas = 8.0;
     final lebar = size.width - kiri - 8;
     final tinggi = size.height - bawah - atas;
 
-    double xAt(int i) => kiri + 8 + (lebar - 16) * i / (ips.length - 1);
-    double yAt(double v) => atas + tinggi * (1 - (v - _min) / (_max - _min));
+    final allVals = [...ips, ...ipk];
+    final minVal = allVals.isNotEmpty
+        ? (allVals.reduce(min) - 0.3).clamp(0.0, 3.5)
+        : 3.0;
+    final maxVal = allVals.isNotEmpty
+        ? (allVals.reduce(max) + 0.3).clamp(1.0, 4.0)
+        : 4.0;
+    final span = max(0.1, maxVal - minVal);
+
+    double xAt(int i) {
+      if (ips.length <= 1) return kiri + lebar / 2;
+      return kiri + 8 + (lebar - 16) * i / (ips.length - 1);
+    }
+
+    double yAt(double v) => atas + tinggi * (1 - (v - minVal) / span);
 
     // Garis bantu dan label sumbu Y
     final grid = Paint()
       ..color = AppColors.border
       ..strokeWidth = 1;
     for (var k = 0; k <= 4; k++) {
-      final v = _min + 0.2 * k;
+      final v = minVal + (span / 4) * k;
       final y = yAt(v);
       canvas.drawLine(Offset(kiri, y), Offset(size.width, y), grid);
       _teks(canvas, v.toStringAsFixed(1), Offset(0, y - 6));
@@ -165,6 +386,17 @@ class _IpkIpsPainter extends CustomPainter {
     _garis(canvas, ips, xAt, yAt, AppColors.primary, putus: false);
   }
 
+  void _teks(Canvas canvas, String t, Offset o) {
+    final tp = TextPainter(
+      text: TextSpan(
+        text: t,
+        style: const TextStyle(fontSize: 10, color: AppColors.muted),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, o);
+  }
+
   void _garis(
     Canvas canvas,
     List<double> data,
@@ -173,6 +405,8 @@ class _IpkIpsPainter extends CustomPainter {
     Color warna, {
     required bool putus,
   }) {
+    if (data.isEmpty) return;
+
     final path = Path()..moveTo(xAt(0), yAt(data[0]));
     for (var i = 1; i < data.length; i++) {
       path.lineTo(xAt(i), yAt(data[i]));
@@ -215,36 +449,45 @@ class _IpkIpsPainter extends CustomPainter {
 }
 
 // ---------------------------------------------------------------
-// Terbaik dan perlu ditingkatkan (sekarang dengan penjelasan)
+// Terbaik dan perlu ditingkatkan (sekarang dengan data dinamis)
 // ---------------------------------------------------------------
 class _BestWorst extends StatelessWidget {
-  const _BestWorst();
+  final String bestName;
+  final String bestDesc;
+  final String worstName;
+  final String worstDesc;
+
+  const _BestWorst({
+    required this.bestName,
+    required this.bestDesc,
+    required this.worstName,
+    required this.worstDesc,
+  });
 
   @override
   Widget build(BuildContext context) {
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: const [
+        children: [
           Expanded(
             child: _Box(
               label: 'Terbaik',
-              name: 'Desain User Interface dan User Experience',
-              description: 'Nilai 92 (A), tertinggi dan di atas rata-rata kelas.',
+              name: bestName,
+              description: bestDesc,
               bg: AppColors.successSoft,
-              border: Color(0xFFA7F3D0),
+              border: const Color(0xFFA7F3D0),
               fg: AppColors.success,
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: _Box(
               label: 'Perlu ditingkatkan',
-              name: 'Pemrograman Mobile',
-              description:
-                  'Nilai 78 (B), di bawah rata-rata kelas. Perbanyak latihan membuat aplikasi dan kumpulkan tugas praktik tepat waktu.',
+              name: worstName,
+              description: worstDesc,
               bg: AppColors.warningSoft,
-              border: Color(0xFFFDE68A),
+              border: const Color(0xFFFDE68A),
               fg: AppColors.warning,
             ),
           ),
@@ -261,13 +504,15 @@ class _Box extends StatelessWidget {
   final Color bg;
   final Color border;
   final Color fg;
-  const _Box(
-      {required this.label,
-      required this.name,
-      required this.description,
-      required this.bg,
-      required this.border,
-      required this.fg});
+
+  const _Box({
+    required this.label,
+    required this.name,
+    required this.description,
+    required this.bg,
+    required this.border,
+    required this.fg,
+  });
 
   @override
   Widget build(BuildContext context) {
