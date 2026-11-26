@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/grade_model.dart';
 import '../../services/grade_service.dart';
+import '../../services/realtime_service.dart';
 import 'detail_mata_kuliah_screen.dart';
 
 class NilaiScreen extends StatefulWidget {
@@ -28,11 +30,23 @@ class _NilaiScreenState extends State<NilaiScreen> {
   String _selectedSemester = 'Semester Ganjil 2024/2025';
   bool _isLoading = true;
   bool _koneksiTerputus = false;
+  StreamSubscription<RealtimeEvent>? _realtimeSub;
 
   @override
   void initState() {
     super.initState();
     _loadGrades();
+    _realtimeSub = RealtimeService.events.listen((event) {
+      if (event.event == 'grades_updated' || event.event == 'grade_review_updated') {
+        _loadGrades();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _realtimeSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadGrades() async {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'screens/auth/splash_screen.dart';
 
 void main() {
@@ -15,9 +16,7 @@ class MyApp extends StatelessWidget {
       title: 'Gradia',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF4F46E5),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4F46E5)),
         scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
       ),
