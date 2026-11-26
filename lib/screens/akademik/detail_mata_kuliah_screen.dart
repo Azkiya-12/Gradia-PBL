@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app_colors.dart';
-import '../review/ajukan_review_screen.dart';
+import 'detail_penilaian_screen.dart';
 import 'nilai_akademik_screen.dart';
 
 class DetailMataKuliahScreen extends StatelessWidget {
@@ -126,32 +126,33 @@ class DetailMataKuliahScreen extends StatelessWidget {
           _PenilaianRow(
             'Tugas Terstruktur',
             'Tugas · $tugasScore (Bobot 30%)',
-            onTap: () => _openReview(context, 'Tugas Terstruktur', tugasScore),
+            onTap: () => _openDetailPenilaian(context, 'Tugas Terstruktur', mk.tugas),
           ),
           const Divider(height: 1, color: AppColors.border),
           _PenilaianRow(
             'Ujian Tengah Semester (UTS)',
             'Ujian · $utsScore (Bobot 35%)',
-            onTap: () => _openReview(context, 'UTS', utsScore),
+            onTap: () => _openDetailPenilaian(context, 'UTS', mk.uts),
           ),
           const Divider(height: 1, color: AppColors.border),
           _PenilaianRow(
             'Ujian Akhir Semester (UAS)',
             'Ujian · $uasScore (Bobot 35%)',
-            onTap: () => _openReview(context, 'UAS', uasScore),
+            onTap: () => _openDetailPenilaian(context, 'UAS', mk.uas),
           ),
         ],
       ),
     );
   }
 
-  void _openReview(BuildContext context, String component, String score) {
+  void _openDetailPenilaian(BuildContext context, String component, double? score) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => AjukanReviewScreen(
+        builder: (_) => DetailPenilaianScreen(
           classId: mk.classId,
-          soal: '$component · ${mk.nama}',
-          nilaiSekarang: score,
+          judul: '$component · ${mk.namaPendek}',
+          nilaiAwal: score,
+          komentarAwal: mk.aiFeedback,
         ),
       ),
     );
@@ -202,17 +203,11 @@ class DetailMataKuliahScreen extends StatelessWidget {
 class _PenilaianRow extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String? chip;
-  final Color? chipBg;
-  final Color? chipFg;
   final VoidCallback? onTap;
 
   const _PenilaianRow(
     this.title,
     this.subtitle, {
-    this.chip,
-    this.chipBg,
-    this.chipFg,
     this.onTap,
   });
 
@@ -240,22 +235,7 @@ class _PenilaianRow extends StatelessWidget {
                 ],
               ),
             ),
-            if (chip != null)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: chipBg,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(chip!,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: chipFg)),
-              )
-            else
-              const Icon(Icons.chevron_right, color: AppColors.ink, size: 22),
+            const Icon(Icons.chevron_right, color: AppColors.ink, size: 22),
           ],
         ),
       ),

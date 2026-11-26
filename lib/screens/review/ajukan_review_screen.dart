@@ -264,7 +264,7 @@ class _AjukanReviewScreenState extends State<AjukanReviewScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primary,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: _primary.withOpacity(0.6),
+                    disabledBackgroundColor: _primary.withValues(alpha: 0.6),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),

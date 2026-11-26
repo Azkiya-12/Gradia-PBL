@@ -103,6 +103,17 @@ class AuthService {
     return DashboardData.fromJson(map);
   }
 
+  /// Permintaan reset kata sandi / lupa password
+  /// Endpoint: POST /api/auth/forgot-password
+  static Future<Map<String, dynamic>> forgotPassword(String identifier) async {
+    return await ApiClient.post(
+      '/auth/forgot-password',
+      body: {
+        'identifier': identifier.trim(),
+      },
+    );
+  }
+
   /// Logout mahasiswa
   static Future<void> logout() async {
     _currentUser = null;
