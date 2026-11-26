@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../app_colors.dart';
 import '../../models/notification_model.dart';
 import '../../services/notification_service.dart';
+import '../../services/realtime_service.dart';
 import '../../widgets/common.dart';
 import 'pengaturan_notifikasi_screen.dart';
 
@@ -18,6 +20,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
   String? _errorMessage;
   int _unreadCount = 0;
   List<NotificationItem> _notifications = [];
+  StreamSubscription<RealtimeEvent>? _realtimeSub;
 
   static const _categories = ['all', 'nilai', 'pengumuman', 'reminder'];
   static const _tabTitles = ['Semua', 'Nilai', 'Pengumuman', 'Pengingat'];
@@ -26,6 +29,19 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
   void initState() {
     super.initState();
     _fetchNotifications();
+    _realtimeSub = RealtimeService.events.listen((event) {
+      if (event.event == 'notification_created' ||
+          event.event == 'grades_updated' ||
+          event.event == 'grade_review_updated') {
+        _fetchNotifications();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _realtimeSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchNotifications() async {

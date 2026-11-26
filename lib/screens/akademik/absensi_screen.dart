@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../models/attendance_model.dart';
 import '../../services/attendance_service.dart';
+import '../../services/realtime_service.dart';
 
 /// Halaman rekap kehadiran mahasiswa terintegrasi dengan backend.
 class AbsensiScreen extends StatefulWidget {
@@ -19,11 +21,23 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
   AttendanceData? _data;
   bool _isLoading = true;
   String? _errorMessage;
+  StreamSubscription<RealtimeEvent>? _realtimeSub;
 
   @override
   void initState() {
     super.initState();
     _loadAttendances();
+    _realtimeSub = RealtimeService.events.listen((event) {
+      if (event.event == 'attendance_updated') {
+        _loadAttendances();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _realtimeSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadAttendances() async {
