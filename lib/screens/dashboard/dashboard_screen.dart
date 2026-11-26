@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../services/notification_service.dart';
+import '../../services/realtime_service.dart';
 import '../../models/user_model.dart';
 import '../../models/dashboard_model.dart';
 import '../notifikasi/notifikasi_screen.dart';
@@ -21,11 +23,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   UserModel? _user;
   DashboardData? _dashboardData;
   int _unreadNotifCount = 0;
+  StreamSubscription<RealtimeEvent>? _realtimeSub;
 
   @override
   void initState() {
     super.initState();
     _loadAll();
+    RealtimeService.connect();
+    _realtimeSub = RealtimeService.events.listen((event) {
+      if (event.event != 'connected') {
+        _loadAll();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _realtimeSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadAll() async {
