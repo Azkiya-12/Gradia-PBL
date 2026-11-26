@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../app_colors.dart';
+import '../../models/ai_feedback_model.dart';
+import '../../models/dashboard_model.dart';
+import '../../models/grade_model.dart';
 import '../../widgets/common.dart';
 import 'kekurangan_screen.dart';
 import 'kelebihan_screen.dart';
@@ -7,7 +10,42 @@ import 'saran_ai_screen.dart';
 
 /// Isi tab "Evaluasi" (dipakai di screen 11 dan screen 12).
 class EvaluasiAiContent extends StatelessWidget {
-  const EvaluasiAiContent({super.key});
+  final List<AiFeedbackItem> feedbacks;
+  final List<GradeCourseModel> courses;
+  final DashboardData? dashboardData;
+  final VoidCallback? onRefresh;
+
+  const EvaluasiAiContent({
+    super.key,
+    this.feedbacks = const [],
+    this.courses = const [],
+    this.dashboardData,
+    this.onRefresh,
+  });
+
+  String _buildPersonalEvaluation() {
+    final graded = courses.where((c) => c.finalScore > 0).toList()
+      ..sort((a, b) => b.finalScore.compareTo(a.finalScore));
+
+    final ipk = dashboardData?.stats.ipk.toStringAsFixed(2);
+    final att = dashboardData?.stats.attendancePercentage;
+
+    if (graded.isEmpty) {
+      return 'AI menilai perkembangan akademikmu dari nilai, kehadiran, dan konsistensi belajar.';
+    }
+
+    final best = graded.first;
+    final worst = graded.last;
+    final statsPart = (ipk != null && att != null)
+        ? 'Dengan IPK $ipk dan kehadiran $att%, performa belajarmu terjaga baik. '
+        : '';
+
+    if (graded.length > 1 && worst.finalScore < 85) {
+      return '${statsPart}Pertahankan pencapaian sangat baik di ${best.title} (${best.letterGrade}), dan sisihkan waktu ekstra untuk mendalami ${worst.title} (${worst.letterGrade}).';
+    }
+
+    return '${statsPart}Pertahankan ritme belajar yang konsisten, terutama pada mata kuliah ${best.title} (${best.letterGrade}).';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +60,14 @@ class EvaluasiAiContent extends StatelessWidget {
                 bg: AppColors.successSoft,
                 fg: AppColors.success,
                 title: 'Kelebihan',
-                onTap: () => push(context, const KelebihanScreen()),
+                onTap: () => push(
+                  context,
+                  KelebihanScreen(
+                    feedbacks: feedbacks,
+                    courses: courses,
+                    dashboardData: dashboardData,
+                  ),
+                ),
                 subtitle: 'Lihat hasil kelebihan akademikmu',
               ),
               _MenuRow(
@@ -30,7 +75,13 @@ class EvaluasiAiContent extends StatelessWidget {
                 bg: AppColors.warningSoft,
                 fg: AppColors.warning,
                 title: 'Kekurangan',
-                onTap: () => push(context, const KekuranganScreen()),
+                onTap: () => push(
+                  context,
+                  KekuranganScreen(
+                    feedbacks: feedbacks,
+                    courses: courses,
+                  ),
+                ),
                 subtitle: 'Lihat bagian yang perlu diperbaiki',
               ),
               _MenuRow(
@@ -38,8 +89,15 @@ class EvaluasiAiContent extends StatelessWidget {
                 bg: AppColors.primarySoft,
                 fg: AppColors.primary,
                 title: 'Saran dari AI',
-                onTap: () => push(context, const SaranAiScreen()),
-                subtitle: 'Rekomendasi berdasarkan nilai dan performa',
+                onTap: () => push(
+                  context,
+                  SaranAiScreen(
+                    feedbacks: feedbacks,
+                    courses: courses,
+                    dashboardData: dashboardData,
+                  ),
+                ),
+                subtitle: 'Rekomendasi OBE dan ulasan AI terbaru',
               ),
             ]),
           ),
@@ -56,19 +114,20 @@ class EvaluasiAiContent extends StatelessWidget {
               colors: [AppColors.primary, AppColors.violet],
             ),
           ),
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Evaluasi pribadi',
+              const Text('Evaluasi pribadi',
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w700)),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
-                  'AI menilai perkembangan akademikmu dari nilai, kehadiran, dan konsistensi belajar. Pertahankan ritme di mata kuliah desain, dan sisihkan waktu ekstra untuk Pemrograman Mobile.',
-                  style: TextStyle(
-                      color: Colors.white, fontSize: 13, height: 1.55)),
+                _buildPersonalEvaluation(),
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 13, height: 1.55),
+              ),
             ],
           ),
         ),

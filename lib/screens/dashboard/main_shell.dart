@@ -29,7 +29,7 @@ class _MainShellState extends State<MainShell> {
         children: [
           DashboardScreen(onTabChange: _goTo),
           NilaiScreen(onKembaliKeDashboard: () => _goTo(0)),
-          const SafeArea(bottom: false, child: EvaluasiAiTabScreen()),
+          SafeArea(bottom: false, child: EvaluasiAiTabScreen(onLihatNilai: () => _goTo(1))),
           const SafeArea(bottom: false, child: AkunScreen()), // <-- DIUBAH
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../services/notification_service.dart';
+import '../../services/ai_service.dart';
 import '../../models/user_model.dart';
 import '../../models/dashboard_model.dart';
 import '../notifikasi/notifikasi_screen.dart';
@@ -21,6 +22,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   UserModel? _user;
   DashboardData? _dashboardData;
   int _unreadNotifCount = 0;
+  String? _aiInsightText;
 
   @override
   void initState() {
@@ -49,6 +51,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final notifRes = await NotificationService.getNotifications();
       if (mounted) {
         setState(() => _unreadNotifCount = notifRes.unreadCount);
+      }
+    } catch (_) {}
+
+    try {
+      final feedbacks = await AiService.getSavedAiFeedbacks();
+      if (mounted && feedbacks.isNotEmpty) {
+        setState(() => _aiInsightText = feedbacks.first.aiFeedback);
       }
     } catch (_) {}
   }
@@ -177,47 +186,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 17),
 
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(18, 20, 18, 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.bottomRight,
+              GestureDetector(
+                onTap: () => widget.onTabChange?.call(2),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(18, 20, 18, 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'AI Insight',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'AI Insight',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Performa akademikmu meningkat dibandingkan semester sebelumnya.',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        height: 1.4,
+                      const SizedBox(height: 4),
+                      Text(
+                        _aiInsightText ??
+                            'Performa akademikmu meningkat dibandingkan semester sebelumnya.',
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          height: 1.4,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Lihat selengkapnya',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Lihat selengkapnya',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 
