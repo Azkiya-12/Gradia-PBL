@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user_model.dart';
 import '../models/dashboard_model.dart';
 import 'api_client.dart';
+import 'ai_service.dart';
 import 'realtime_service.dart';
 
 class AuthService {
@@ -118,6 +119,7 @@ class AuthService {
   /// Logout mahasiswa
   static Future<void> logout() async {
     RealtimeService.disconnect();
+    AiService.clearCache();
     _currentUser = null;
     await _storage.delete(key: _kToken);
     await _storage.delete(key: _kUser);

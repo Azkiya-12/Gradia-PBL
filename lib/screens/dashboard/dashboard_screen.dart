@@ -70,11 +70,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (_) {}
 
     try {
-      final feedbacks = await AiService.getSavedAiFeedbacks();
-      if (mounted && feedbacks.isNotEmpty) {
-        setState(() => _aiInsightText = feedbacks.first.aiFeedback);
+      final feedbacks = await AiService.getSavedAiFeedbacks(forceRefresh: true);
+      if (mounted) {
+        setState(() {
+          _aiInsightText =
+              feedbacks.isNotEmpty ? feedbacks.first.aiFeedback : null;
+        });
       }
     } catch (_) {}
+  }
+
+  String _resolveAiInsightText() {
+    if (_aiInsightText != null && _aiInsightText!.trim().isNotEmpty) {
+      return _aiInsightText!;
+    }
+    final data = _dashboardData;
+    if (data == null) {
+      return 'Performa akademikmu meningkat dibandingkan semester sebelumnya.';
+    }
+    final ipk = data.stats.ipk.toStringAsFixed(2);
+    final att = data.stats.attendancePercentage;
+    if (att < 75) {
+      return 'IPK semester $ipk dengan kehadiran $att%. Tingkatkan kehadiran kelas agar capaian akademikmu tetap optimal.';
+    }
+    if (data.stats.ipk >= 3.5 && att >= 80) {
+      return 'IPK semester $ipk dan kehadiran $att% terjaga sangat baik. Pertahankan konsistensi belajarmu.';
+    }
+    return 'IPK semester saat ini $ipk dengan kehadiran $att%. Pantau terus evaluasi dan target nilaimu.';
   }
 
   @override
@@ -227,8 +249,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _aiInsightText ??
-                            'Performa akademikmu meningkat dibandingkan semester sebelumnya.',
+                        _resolveAiInsightText(),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(

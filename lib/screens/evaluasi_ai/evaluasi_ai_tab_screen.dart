@@ -44,7 +44,7 @@ class _EvaluasiAiTabScreenState extends State<EvaluasiAiTabScreen> {
 
     try {
       final results = await Future.wait([
-        AiService.getSavedAiFeedbacks(),
+        AiService.getSavedAiFeedbacks(forceRefresh: true),
         GradeService.getGrades(),
         AuthService.fetchDashboardData(),
       ]);
