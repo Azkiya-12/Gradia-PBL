@@ -110,9 +110,9 @@ class DetailMataKuliahScreen extends StatelessWidget {
   }
 
   Widget _penilaianList(BuildContext context) {
-    final tugasScore = mk.tugas != null ? '${mk.tugas!.toStringAsFixed(0)} / 100' : '92 / 100';
-    final utsScore = mk.uts != null ? '${mk.uts!.toStringAsFixed(0)} / 100' : '88 / 100';
-    final uasScore = mk.uas != null ? '${mk.uas!.toStringAsFixed(0)} / 100' : '94 / 100';
+    final tugasScore = mk.tugas != null ? '${mk.tugas!.toStringAsFixed(0)} / 100' : 'Belum dinilai';
+    final utsScore = mk.uts != null ? '${mk.uts!.toStringAsFixed(0)} / 100' : 'Belum dinilai';
+    final uasScore = mk.uas != null ? '${mk.uas!.toStringAsFixed(0)} / 100' : 'Belum dinilai';
 
     return Container(
       decoration: BoxDecoration(
