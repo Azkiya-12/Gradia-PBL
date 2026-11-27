@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../../models/assignment_model.dart';
 import '../../services/assignment_service.dart';
 import '../../services/api_client.dart';
+import '../../services/realtime_service.dart';
 
 class TugasScreen extends StatefulWidget {
   final VoidCallback? onLihatEvaluasiAI;
@@ -31,11 +33,26 @@ class _TugasScreenState extends State<TugasScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   bool _hasModified = false;
+  StreamSubscription<RealtimeEvent>? _realtimeSub;
 
   @override
   void initState() {
     super.initState();
     _loadAssignments();
+    _realtimeSub = RealtimeService.events.listen((event) {
+      if (event.event == 'assignment_created' ||
+          event.event == 'assignment_submitted' ||
+          event.event == 'grades_updated' ||
+          event.event == 'notification_created') {
+        _loadAssignments();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _realtimeSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadAssignments() async {

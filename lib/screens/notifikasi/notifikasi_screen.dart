@@ -32,7 +32,8 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
     _realtimeSub = RealtimeService.events.listen((event) {
       if (event.event == 'notification_created' ||
           event.event == 'grades_updated' ||
-          event.event == 'grade_review_updated') {
+          event.event == 'grade_review_updated' ||
+          event.event == 'attendance_updated') {
         _fetchNotifications();
       }
     });

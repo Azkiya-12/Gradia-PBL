@@ -1,15 +1,15 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 class ApiConfig {
-  /// Base URL backend.
-  /// - Di Web / Windows / macOS / Linux: `http://localhost:5001/api`
-  /// - Di Emulator Android: `http://10.0.2.2:5001/api`
-  /// - Di Real Device / LAN: ganti dengan IP laptop
+  static const String _envApiUrl = String.fromEnvironment('API_URL');
+
+  /// Base URL backend aktif (disamakan dengan frontend-dosen & adb reverse tcp:5001 tcp:5001).
+  /// Dapat dioverride saat build/run via `--dart-define=API_URL=http://<ip>:5001/api`.
   static String get baseUrl {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:5001/api';
+    if (_envApiUrl.isNotEmpty) {
+      return _envApiUrl;
     }
     return 'http://localhost:5001/api';
   }

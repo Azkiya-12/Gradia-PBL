@@ -25,6 +25,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   DashboardData? _dashboardData;
   int _unreadNotifCount = 0;
   String? _aiInsightText;
+  bool _isLoading = true;
+  String? _errorMessage;
   StreamSubscription<RealtimeEvent>? _realtimeSub;
 
   @override
@@ -58,9 +60,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() {
           _user = futures[0] as UserModel;
           _dashboardData = futures[1] as DashboardData;
+          _isLoading = false;
+          _errorMessage = null;
         });
       }
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+      }
+    }
 
     try {
       final notifRes = await NotificationService.getNotifications();
@@ -101,23 +112,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = _user?.namaPanggilan ?? 'Sinta';
-    final inisial = _user?.inisial ?? 'SP';
+    final displayName = _user?.namaPanggilan ?? 'Mahasiswa';
+    final inisial = _user?.inisial ?? 'M';
     final ipkVal = _dashboardData != null
-        ? _dashboardData!.stats.ipk.toStringAsFixed(1)
-        : '3.7';
+        ? _dashboardData!.stats.ipk.toStringAsFixed(2)
+        : '-';
     final attendanceVal = _dashboardData != null
         ? '${_dashboardData!.stats.attendancePercentage}%'
-        : '92%';
+        : '-';
     final terlewatVal = _dashboardData != null
         ? '${_dashboardData!.stats.taskStats.terlewat}'
-        : '1';
+        : '-';
     final mendatangVal = _dashboardData != null
         ? '${_dashboardData!.stats.taskStats.mendatang}'
-        : '3';
+        : '-';
     final terkumpulVal = _dashboardData != null
         ? '${_dashboardData!.stats.taskStats.terkumpul}'
-        : '1';
+        : '-';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -460,55 +471,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    // Fallback placeholder saat memuat
-    return Column(
-      children: [
-        _AssignmentItem(
-          title: 'Usability Test Report',
-          subtitle: 'Desain User Interface dan User Experience',
-          deadline: 'Terlambat 2 hari',
-          status: 'Terlewat',
-          statusColor: const Color(0xFFDC2626),
-          statusBackground: const Color(0xFFFEE2E2),
-          onTap: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TugasScreen(
-                  onLihatEvaluasiAI: () {
-                    Navigator.pop(context);
-                    widget.onTabChange?.call(2);
-                  },
-                ),
-              ),
-            );
-            if (mounted) _loadAll();
-          },
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            color: Color(0xFF4F46E5),
+          ),
         ),
-        const Divider(height: 1, color: Color(0xFFE2E8F0)),
-        _AssignmentItem(
-          title: 'Tugas Aplikasi Mobile',
-          subtitle: 'Pemrograman Mobile',
-          deadline: 'Besok, 23:59',
-          status: 'Segera',
-          statusColor: const Color(0xFFB45309),
-          statusBackground: const Color(0xFFFEF3C7),
-          onTap: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TugasScreen(
-                  onLihatEvaluasiAI: () {
-                    Navigator.pop(context);
-                    widget.onTabChange?.call(2);
-                  },
-                ),
-              ),
-            );
-            if (mounted) _loadAll();
-          },
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Center(
+        child: Text(
+          _errorMessage != null
+              ? 'Gagal memuat daftar tugas dari server.'
+              : 'Belum ada tugas.',
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.w500,
+          ),
         ),
-      ],
+      ),
     );
   }
 }

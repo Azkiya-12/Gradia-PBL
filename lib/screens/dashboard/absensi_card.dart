@@ -25,12 +25,6 @@ class AbsensiCard extends StatefulWidget {
 }
 
 class _AbsensiCardState extends State<AbsensiCard> {
-  // Fallback data jika backend belum terhubung
-  static const _defaultMataKuliah = 'Pemrograman Mobile';
-  static const _defaultInfo = 'Ruang B.2.1 · 10:00–11:40';
-  static const _defaultBatas = 'Ditutup 10:15';
-  static const _defaultClassId = 4;
-
   /// null = belum absen. Contoh isi: 'Hadir · Luring', 'Izin', 'Sakit'.
   String? _hasil;
 
@@ -59,19 +53,22 @@ class _AbsensiCardState extends State<AbsensiCard> {
         _hasil = 'Izin';
       } else if (s.status == 'sakit') {
         _hasil = 'Sakit';
+      } else {
+        _hasil = s.status;
       }
+    } else {
+      _hasil = null;
     }
   }
 
-  int get _classId => widget.activeSession?.classId ?? _defaultClassId;
-  String get _mataKuliah => widget.activeSession?.nama ?? _defaultMataKuliah;
+  int get _classId => widget.activeSession?.classId ?? 0;
+  String get _mataKuliah => widget.activeSession?.nama ?? '';
   String get _info {
-    if (widget.activeSession != null) {
-      return '${widget.activeSession!.room} · ${widget.activeSession!.schedule}';
-    }
-    return _defaultInfo;
+    final s = widget.activeSession;
+    if (s == null) return '';
+    return '${s.room} · ${s.schedule}';
   }
-  String get _batas => widget.activeSession?.batas ?? _defaultBatas;
+  String get _batas => widget.activeSession?.batas ?? 'Sesi Aktif';
 
   Future<void> _absen() async {
     final pilihan = await showGeneralDialog<String>(
@@ -147,6 +144,48 @@ class _AbsensiCardState extends State<AbsensiCard> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.activeSession == null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.event_available_outlined,
+                color: Color(0xFF64748B), size: 28),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Belum ada sesi presensi aktif',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Sesi presensi akan muncul otomatis saat dosen membukanya.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final sudahAbsen = _hasil != null;
 
     return _SesiKartu(
